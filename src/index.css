@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #2f2618;
+  background: #f5efe7;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f5efe7;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(123, 96, 46, 0.04) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: 0.35;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+textarea::-webkit-scrollbar,
+div::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb,
+div::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(99, 80, 52, 0.22);
+}
+
+.phone-glow {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 30px 80px rgba(51, 35, 12, 0.25);
+}
+
+.font-display {
+  font-family: 'STKaiti', 'Kaiti SC', 'Songti SC', serif;
+}
+
+@media (max-width: 1024px) {
+  body::before {
+    opacity: 0.22;
+  }
+}
