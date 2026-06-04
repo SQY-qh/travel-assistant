@@ -32,6 +32,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_AMAP_API_KEY: ${{ secrets.VITE_AMAP_API_KEY }}
+          VITE_AMAP_SECURITY_JS_CODE: ${{ secrets.VITE_AMAP_SECURITY_JS_CODE }}
         run: |
           if [[ "${{ github.event.repository.name }}" == *.github.io ]]; then
             VITE_BASE="/" npm run build
