@@ -33,7 +33,29 @@ const initialMessages = [
 
 export const useTravelStore = create<TravelState>()(
   persist(
-    (set, get) => ({
+    (set, get) => {
+      const refinePlanWithAmapInBackground = (basePlan: TravelPlan, profile: TravelProfile) => {
+        void enrichPlanWithAmap(basePlan, profile)
+          .then((plan) => {
+            void emitTelemetry('plan.enriched', {
+              destination: plan.selectedRecommendation?.city,
+              points: plan.dayPlans.flatMap((dayPlan) => dayPlan.spots).filter((spot) => typeof spot.lng === 'number' && typeof spot.lat === 'number').length,
+            })
+            set((state) => {
+              if (state.activeRecommendationId !== basePlan.selectedRecommendation.id) return state
+              return {
+                ...state,
+                plan,
+                activeRecommendationId: plan.selectedRecommendation.id,
+              }
+            })
+          })
+          .catch((error) => {
+            void emitTelemetry('plan.enrich.error', { error: String(error?.message || error) })
+          })
+      }
+
+      return ({
       profile: createEmptyProfile(),
       messages: initialMessages,
       plan: null,
@@ -78,14 +100,14 @@ export const useTravelStore = create<TravelState>()(
 
           if (turn.shouldGeneratePlan) {
             const rawPlan = await buildTravelPlanAsync(turn.profile, get().activeRecommendationId || undefined)
-            const plan = await enrichPlanWithAmap(rawPlan, turn.profile)
             void emitTelemetry('plan.generated', {
-              destination: plan.selectedRecommendation?.city,
-              budget: plan.budget,
+              destination: rawPlan.selectedRecommendation?.city,
+              budget: rawPlan.budget,
             })
-            nextState.plan = plan
-            nextState.activeRecommendationId = plan.selectedRecommendation.id
+            nextState.plan = rawPlan
+            nextState.activeRecommendationId = rawPlan.selectedRecommendation.id
             nextState.expectedField = ''
+            refinePlanWithAmapInBackground(rawPlan, turn.profile)
           }
 
           set((state) => ({
@@ -125,20 +147,20 @@ export const useTravelStore = create<TravelState>()(
         set({ isGenerating: true })
         try {
           const rawPlan = await buildTravelPlanAsync(profile, get().activeRecommendationId || undefined)
-          const plan = await enrichPlanWithAmap(rawPlan, profile)
           void emitTelemetry('plan.generated', {
-            destination: plan.selectedRecommendation?.city,
-            budget: plan.budget,
+            destination: rawPlan.selectedRecommendation?.city,
+            budget: rawPlan.budget,
           })
+          refinePlanWithAmapInBackground(rawPlan, profile)
           set((state) => ({
             ...state,
             isGenerating: false,
-            plan,
-            activeRecommendationId: plan.selectedRecommendation.id,
+            plan: rawPlan,
+            activeRecommendationId: rawPlan.selectedRecommendation.id,
             expectedField: '',
             messages: [
               ...state.messages,
-              createMessage('assistant', `已根据你的条件生成 ${plan.selectedRecommendation.city} 方案，你现在可以去查看路线、预算、价格监控和出行准备了。`),
+              createMessage('assistant', `已根据你的条件生成 ${rawPlan.selectedRecommendation.city} 方案，你现在可以去查看路线、预算、价格监控和出行准备了。`),
             ],
           }))
         } catch (error) {
@@ -158,9 +180,9 @@ export const useTravelStore = create<TravelState>()(
         set({ isGenerating: true })
         try {
           const rawPlan = await buildTravelPlanAsync(profile, id)
-          const plan = await enrichPlanWithAmap(rawPlan, profile)
-          void emitTelemetry('plan.switched', { destination: plan.selectedRecommendation?.city, id })
-          set({ plan, activeRecommendationId: plan.selectedRecommendation.id, expectedField: '', isGenerating: false })
+          void emitTelemetry('plan.switched', { destination: rawPlan.selectedRecommendation?.city, id })
+          set({ plan: rawPlan, activeRecommendationId: rawPlan.selectedRecommendation.id, expectedField: '', isGenerating: false })
+          refinePlanWithAmapInBackground(rawPlan, profile)
         } catch (error) {
           void emitTelemetry('plan.error', { error: String(error?.message || error) })
           set({ isGenerating: false })
@@ -188,7 +210,8 @@ export const useTravelStore = create<TravelState>()(
           lastSummary: '暂未收集到关键信息',
           isGenerating: false,
         }),
-    }),
+      })
+    },
     {
       name: 'voya-travel-store',
       partialize: (state) => ({
