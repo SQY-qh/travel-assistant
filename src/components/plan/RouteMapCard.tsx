@@ -267,8 +267,8 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
             ? isResolving
               ? '地图已显示，正在继续用高德解析更准确的路线节点与城市焦点。'
               : routeSegments.length > 0
-                ? '已根据高德路径规划绘制真实路线。'
-                : '已根据推荐路线绘制城市动线。'
+                ? '高德底图已显示，路线折线为当前静态版估算动线。'
+                : '高德底图已显示，正在按推荐节点绘制城市动线。'
             : '正在加载地图资源...'}
         </p>
         <div className="rounded-[20px] bg-stone-50 px-3 py-3">

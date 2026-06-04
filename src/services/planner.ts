@@ -35,7 +35,7 @@ const imageFromPrompt = (prompt: string) => {
   return assetUrl(localTravelImages[hash % localTravelImages.length])
 }
 const normalizeCityName = (value: string) => value.replace(/市|特别行政区|自治区|省/g, '').trim()
-const domesticCities = new Set(['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '西安', '青岛', '厦门', '南京', '苏州', '武汉', '长沙', '三亚', '昆明', '大理', '丽江', '哈尔滨', '天津', '珠海', '桂林', '拉萨', '福州', '宁波', '无锡'])
+const domesticCities = new Set(['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '西安', '青岛', '厦门', '南京', '苏州', '武汉', '长沙', '沈阳', '大连', '长春', '哈尔滨', '天津', '济南', '郑州', '合肥', '福州', '南昌', '昆明', '贵阳', '南宁', '海口', '三亚', '大理', '丽江', '珠海', '桂林', '拉萨', '宁波', '无锡'])
 const cityCenters: Record<string, [number, number]> = {
   北京: [116.4074, 39.9042],
   上海: [121.4737, 31.2304],
@@ -51,6 +51,21 @@ const cityCenters: Record<string, [number, number]> = {
   苏州: [120.5853, 31.2989],
   武汉: [114.3054, 30.5931],
   长沙: [112.9388, 28.2282],
+  沈阳: [123.4315, 41.8057],
+  大连: [121.6147, 38.913],
+  长春: [125.3245, 43.8868],
+  哈尔滨: [126.6424, 45.756],
+  天津: [117.2009, 39.0842],
+  济南: [117.1201, 36.6512],
+  郑州: [113.6254, 34.7466],
+  合肥: [117.2272, 31.8206],
+  福州: [119.2965, 26.0745],
+  南昌: [115.8579, 28.6832],
+  昆明: [102.8329, 24.8801],
+  贵阳: [106.6302, 26.647],
+  南宁: [108.3669, 22.817],
+  海口: [110.1983, 20.0442],
+  三亚: [109.5119, 18.2528],
 }
 
 const cityClimateNotes: Record<string, string> = {
@@ -64,6 +79,7 @@ const cityClimateNotes: Record<string, string> = {
   西安: '西安昼夜温差较明显，春秋建议准备外套，夏季注意防晒。',
   武汉: '武汉夏季炎热湿润，春秋适合城市漫游，建议准备透气衣物、遮阳用品和轻便雨具。',
   长沙: '长沙夏季湿热、口味偏辣，建议注意补水并准备轻便透气衣物。',
+  沈阳: '沈阳冬季寒冷干燥，春秋温差明显；如果安排故宫、中街和北陵一带，建议准备保暖外套与舒适步行鞋。',
 }
 
         const normalize = (value: string) => value.replace(/[，。！？；]/g, ' ').trim()
@@ -628,11 +644,16 @@ const needsDetailedCityUpgrade = (plan: TravelPlan, city: string) =>
 export const ensurePlanCityConsistency = (plan: TravelPlan): TravelPlan => {
   const city = normalizeCityName(plan.selectedRecommendation.city)
   if (!city) return plan
+  const mapCenter = cityCenters[city] ?? plan.selectedRecommendation.mapCenter
   const upgradedDayPlans = needsDetailedCityUpgrade(plan, city)
     ? fitDetailedCityPlans(city, plan.dayPlans.length) ?? plan.dayPlans
     : plan.dayPlans
   return {
     ...plan,
+    selectedRecommendation: {
+      ...plan.selectedRecommendation,
+      mapCenter,
+    },
     policyCards: ensureCityScopedPolicyCards(plan.policyCards, city),
     outfitSuggestions: selectOutfitsForTrip({ ...createEmptyProfile(), destinationCity: city }, city),
     dayPlans: upgradedDayPlans.map((dayPlan) => ({

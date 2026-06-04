@@ -23,6 +23,7 @@ const cityCodeMap: Record<string, string> = {
   苏州: 'SHA',
   武汉: 'WUH',
   长沙: 'CSX',
+  沈阳: 'SHE',
   三亚: 'SYX',
   昆明: 'KMG',
   大连: 'DLC',
@@ -195,7 +196,7 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
     returnDate: query.returnDate,
   })
 
-  const international = !['BJS', 'SHA', 'CAN', 'SZX', 'HGH', 'CTU', 'CKG', 'XIY', 'ZUH', 'TAO', 'XMN', 'NKG', 'WUH', 'CSX', 'SYX', 'KMG', 'DLC', 'TSN'].includes(query.destinationCode)
+  const international = !['BJS', 'SHA', 'CAN', 'SZX', 'HGH', 'CTU', 'CKG', 'XIY', 'ZUH', 'TAO', 'XMN', 'NKG', 'WUH', 'CSX', 'SHE', 'SYX', 'KMG', 'DLC', 'TSN'].includes(query.destinationCode)
   const flightBase = international ? 3200 : 980
   const hotelBase = international ? 820 : 420
   const trainAvailable = !international && query.originCode !== query.destinationCode

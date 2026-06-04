@@ -90,6 +90,27 @@ describe('planner service', () => {
     expect(plan.monitors[0].target).toContain('深圳')
   })
 
+  it('用户明确指定沈阳时，地图中心不应回退到北京', () => {
+    const plan = buildTravelPlan({
+      ...createEmptyProfile(),
+      departureCity: '上海',
+      destinationCity: '沈阳',
+      destinationIntent: '历史文化深度游',
+      dateRange: '7月 · 3天',
+      travelers: '情侣',
+      budgetLevel: '中等预算',
+      travelStyle: ['历史', '城市'],
+      accommodationPreference: '精品酒店',
+      transportPreference: '飞机',
+      visaStatus: '',
+      notes: '需要价格监控',
+    })
+
+    expect(plan.selectedRecommendation.city).toBe('沈阳')
+    expect(plan.selectedRecommendation.mapCenter).toEqual([123.4315, 41.8057])
+    expect(plan.selectedRecommendation.mapCenter).not.toEqual([116.4074, 39.9042])
+  })
+
   it('切换到其他候选时也应保留用户明确指定的目的地候选', () => {
     const plan = buildTravelPlan(
       {
