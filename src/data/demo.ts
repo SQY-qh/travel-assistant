@@ -20,7 +20,7 @@ const imageFromPrompt = (prompt: string) => {
   return assetUrl(localTravelImages[hash % localTravelImages.length])
 }
 
-export const mascotImage = assetUrl('outfits/wuhan-citywalk.png')
+export const mascotImage = assetUrl('voya-mascot.svg')
 
 export const quickPrompts = [
   '我想从上海出发，7 月去一个适合情侣放松的海边目的地，预算中等',
