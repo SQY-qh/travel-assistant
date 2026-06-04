@@ -61,6 +61,21 @@ export const useTravelStore = create<TravelState>()(
             expectedField: turn.missingFields[0] ?? '',
           }
 
+          set((state) => ({
+            ...state,
+            ...nextState,
+            isGenerating: turn.shouldGeneratePlan,
+            messages: [...state.messages, createMessage('assistant', turn.assistantMessage)],
+          }))
+
+          if (!turn.shouldGeneratePlan) {
+            return
+          }
+
+          set((state) => ({
+            messages: [...state.messages, createMessage('assistant', '信息已收齐，我正在生成行程、地图节点和准备清单，稍等片刻。')],
+          }))
+
           if (turn.shouldGeneratePlan) {
             const rawPlan = await buildTravelPlanAsync(turn.profile, get().activeRecommendationId || undefined)
             const plan = await enrichPlanWithAmap(rawPlan, turn.profile)
@@ -77,7 +92,10 @@ export const useTravelStore = create<TravelState>()(
             ...state,
             ...nextState,
             isGenerating: false,
-            messages: [...state.messages, createMessage('assistant', turn.assistantMessage)],
+            messages: [
+              ...state.messages,
+              createMessage('assistant', `已生成 ${nextState.plan?.selectedRecommendation.city || '目的地'} 方案，可切换到底部“行程”和“准备”查看。`),
+            ],
           }))
         } catch (error) {
           void emitTelemetry('plan.error', { error: String(error?.message || error) })
