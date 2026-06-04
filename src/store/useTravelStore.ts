@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { enrichPlanWithAmap } from '@/services/poiEnrichment'
-import { buildTravelPlanAsync, collectConversationTurn, ensurePlanCityConsistency, getMissingFields } from '@/services/planner'
+import { buildTravelPlan, buildTravelPlanAsync, collectConversationTurn, ensurePlanCityConsistency, getMissingFields } from '@/services/planner'
 import { emitTelemetry } from '@/services/telemetry'
 import { createEmptyProfile, type ChatMessage, type RequiredField, type TravelPlan, type TravelProfile } from '@/types/travel'
 
@@ -55,6 +55,26 @@ export const useTravelStore = create<TravelState>()(
           })
       }
 
+      const refinePlanWithLLMAndAmapInBackground = (basePlan: TravelPlan, profile: TravelProfile, selectedId?: string) => {
+        void buildTravelPlanAsync(profile, selectedId)
+          .then((llmPlan) => enrichPlanWithAmap(llmPlan, profile))
+          .then((plan) => {
+            void emitTelemetry('plan.refined', { destination: plan.selectedRecommendation?.city })
+            set((state) => {
+              if (state.activeRecommendationId !== basePlan.selectedRecommendation.id) return state
+              return {
+                ...state,
+                plan,
+                activeRecommendationId: plan.selectedRecommendation.id,
+              }
+            })
+          })
+          .catch((error) => {
+            void emitTelemetry('plan.refine.error', { error: String(error?.message || error) })
+            refinePlanWithAmapInBackground(basePlan, profile)
+          })
+      }
+
       return ({
       profile: createEmptyProfile(),
       messages: initialMessages,
@@ -99,7 +119,7 @@ export const useTravelStore = create<TravelState>()(
           }))
 
           if (turn.shouldGeneratePlan) {
-            const rawPlan = await buildTravelPlanAsync(turn.profile, get().activeRecommendationId || undefined)
+            const rawPlan = buildTravelPlan(turn.profile, get().activeRecommendationId || undefined)
             void emitTelemetry('plan.generated', {
               destination: rawPlan.selectedRecommendation?.city,
               budget: rawPlan.budget,
@@ -107,7 +127,7 @@ export const useTravelStore = create<TravelState>()(
             nextState.plan = rawPlan
             nextState.activeRecommendationId = rawPlan.selectedRecommendation.id
             nextState.expectedField = ''
-            refinePlanWithAmapInBackground(rawPlan, turn.profile)
+            refinePlanWithLLMAndAmapInBackground(rawPlan, turn.profile, get().activeRecommendationId || undefined)
           }
 
           set((state) => ({
@@ -146,12 +166,12 @@ export const useTravelStore = create<TravelState>()(
         }
         set({ isGenerating: true })
         try {
-          const rawPlan = await buildTravelPlanAsync(profile, get().activeRecommendationId || undefined)
+          const rawPlan = buildTravelPlan(profile, get().activeRecommendationId || undefined)
           void emitTelemetry('plan.generated', {
             destination: rawPlan.selectedRecommendation?.city,
             budget: rawPlan.budget,
           })
-          refinePlanWithAmapInBackground(rawPlan, profile)
+          refinePlanWithLLMAndAmapInBackground(rawPlan, profile, get().activeRecommendationId || undefined)
           set((state) => ({
             ...state,
             isGenerating: false,
@@ -179,10 +199,10 @@ export const useTravelStore = create<TravelState>()(
         const profile = get().profile
         set({ isGenerating: true })
         try {
-          const rawPlan = await buildTravelPlanAsync(profile, id)
+          const rawPlan = buildTravelPlan(profile, id)
           void emitTelemetry('plan.switched', { destination: rawPlan.selectedRecommendation?.city, id })
           set({ plan: rawPlan, activeRecommendationId: rawPlan.selectedRecommendation.id, expectedField: '', isGenerating: false })
-          refinePlanWithAmapInBackground(rawPlan, profile)
+          refinePlanWithLLMAndAmapInBackground(rawPlan, profile, id)
         } catch (error) {
           void emitTelemetry('plan.error', { error: String(error?.message || error) })
           set({ isGenerating: false })
