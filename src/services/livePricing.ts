@@ -1,4 +1,5 @@
 import { emitTelemetry } from '@/services/telemetry'
+import { apiUrl, hasApiBaseUrl } from '@/services/apiBase'
 import type { LivePricingQuery, LivePricingResult, TravelPlan, TravelProfile } from '@/types/travel'
 
 type QueryResolution =
@@ -195,6 +196,46 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
     departureDate: query.departureDate,
     returnDate: query.returnDate,
   })
+
+  if (hasApiBaseUrl()) {
+    const params = new URLSearchParams({
+      originCity: query.originCity,
+      originCode: query.originCode,
+      destinationCity: query.destinationCity,
+      destinationCode: query.destinationCode,
+      cityCode: query.destinationCode,
+      departureDate: query.departureDate,
+      returnDate: query.returnDate,
+      checkInDate: query.checkInDate,
+      checkOutDate: query.checkOutDate,
+      adults: String(query.adults),
+      roomQuantity: String(query.roomQuantity),
+      tripDays: String(query.tripDays),
+      approximateDates: query.approximateDates ? '1' : '0',
+      querySummary: query.querySummary,
+    })
+
+    try {
+      const response = await fetch(apiUrl(`/api/pricing/search?${params.toString()}`))
+      if (!response.ok) {
+        throw new Error(`pricing_proxy_${response.status}`)
+      }
+      const data = await response.json()
+      if (!data?.ok) {
+        throw new Error(data?.error || 'pricing_proxy_failed')
+      }
+      void emitTelemetry('pricing.search.end', {
+        ok: true,
+        provider: data.provider,
+        flights: data.flights?.length || 0,
+        hotels: data.hotels?.length || 0,
+        trains: data.trains?.length || 0,
+      })
+      return data as LivePricingResult
+    } catch (error) {
+      void emitTelemetry('pricing.search.end', { ok: false, error: String(error?.message || error) })
+    }
+  }
 
   const international = !['BJS', 'SHA', 'CAN', 'SZX', 'HGH', 'CTU', 'CKG', 'XIY', 'ZUH', 'TAO', 'XMN', 'NKG', 'WUH', 'CSX', 'SHE', 'SYX', 'KMG', 'DLC', 'TSN'].includes(query.destinationCode)
   const flightBase = international ? 3200 : 980

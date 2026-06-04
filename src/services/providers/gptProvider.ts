@@ -1,4 +1,5 @@
 import { emitTelemetry } from '@/services/telemetry'
+import { apiUrl, hasApiBaseUrl } from '@/services/apiBase'
 
 type GPTRequest = {
   prompt: string
@@ -11,9 +12,37 @@ const getConfig = () => ({
   model: import.meta.env.VITE_GPT_MODEL ?? 'qwen-turbo',
 })
 
-export const hasGPTConfig = () => Boolean(getConfig().apiKey)
+export const hasGPTConfig = () => hasApiBaseUrl() || Boolean(getConfig().apiKey)
 
 export async function chatCompletion(prompt: string, system: string, temperature = 0.7) {
+  if (hasApiBaseUrl()) {
+    const startedAt = performance.now()
+    void emitTelemetry('qwen.call.start', { model: 'server-proxy', endpoint: apiUrl('/api/qwen/chat') })
+    try {
+      const response = await fetch(apiUrl('/api/qwen/chat'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, system, temperature }),
+      })
+      const elapsedMs = Math.round(performance.now() - startedAt)
+      if (!response.ok) {
+        void emitTelemetry('qwen.call.end', { ok: false, status: response.status, elapsedMs })
+        return null
+      }
+      const data = await response.json()
+      const content = data?.content
+      const ok = typeof content === 'string' && content.trim()
+      void emitTelemetry('qwen.call.end', { ok: Boolean(ok), status: 200, elapsedMs })
+      return ok ? content.trim() : null
+    } catch (error) {
+      const elapsedMs = Math.round(performance.now() - startedAt)
+      void emitTelemetry('qwen.call.end', { ok: false, elapsedMs, error: String(error?.message || error) })
+      return null
+    }
+  }
+
   const { apiKey, baseUrl, model } = getConfig()
   if (!apiKey) {
     return null

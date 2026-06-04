@@ -15,8 +15,11 @@
    - `VITE_AMAP_API_KEY`：Web 端 JS API Key
    - `VITE_AMAP_SECURITY_JS_CODE`：JS 安全密钥
    - `VITE_AMAP_WEBSERVICE_KEY`：Web 服务 Key（用于地理编码、POI 搜索、后端校验）
+   - `VITE_API_BASE_URL`：云端 API 代理地址，例如 Vercel 部署后的 `https://your-project.vercel.app`
 4. 若要启用真实航班 / 酒店报价，请额外填写后端专用的：
    - `AMADEUS_API_KEY`
    - `AMADEUS_API_SECRET`
    - `AMADEUS_BASE_URL`：默认可用 `https://test.api.amadeus.com`
+
+公开 GitHub Pages 只应注入 `VITE_AMAP_API_KEY`、`VITE_AMAP_SECURITY_JS_CODE` 和 `VITE_API_BASE_URL`。`VITE_GPT_API_KEY`、`VITE_AMAP_WEBSERVICE_KEY`、`AMADEUS_API_KEY`、`AMADEUS_API_SECRET` 应配置在 Vercel/云函数环境变量中。
 5. 重新执行 `npm run dev` 与 `npm run dev:telemetry`

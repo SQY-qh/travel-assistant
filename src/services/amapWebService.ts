@@ -1,3 +1,5 @@
+import { apiUrl, hasApiBaseUrl } from '@/services/apiBase'
+
 export type AmapPoi = {
   id: string
   name: string
@@ -75,10 +77,31 @@ const offsetPoint = (center: [number, number], index: number): [number, number] 
 }
 
 export async function verifyAmapWebService() {
+  if (hasApiBaseUrl()) {
+    try {
+      const response = await fetch(apiUrl('/api/amap/verify'))
+      if (response.ok) return response.json()
+    } catch {
+      return { ok: false, info: 'proxy-unavailable' }
+    }
+  }
   return { ok: true, info: 'static-mode' }
 }
 
 export async function geocodeAddress(address: string, city?: string) {
+  if (hasApiBaseUrl()) {
+    try {
+      const params = new URLSearchParams({ address })
+      if (city) params.set('city', city)
+      const response = await fetch(apiUrl(`/api/amap/geocode?${params.toString()}`))
+      if (response.ok) {
+        const data = await response.json()
+        if (data?.ok && Array.isArray(data.location)) return data.location as [number, number]
+      }
+    } catch {
+      // Fall through to static city-center fallback.
+    }
+  }
   return inferCenter(address) ?? inferCenter(city) ?? null
 }
 
@@ -88,6 +111,22 @@ export async function searchAmapPoi(options: {
   types?: string
   limit?: number
 }) {
+  if (hasApiBaseUrl()) {
+    try {
+      const params = new URLSearchParams({ keywords: options.keywords })
+      if (options.city) params.set('city', options.city)
+      if (options.types) params.set('types', options.types)
+      if (options.limit) params.set('offset', String(options.limit))
+      const response = await fetch(apiUrl(`/api/amap/poi?${params.toString()}`))
+      if (response.ok) {
+        const data = await response.json()
+        if (data?.ok && Array.isArray(data.pois)) return data.pois as AmapPoi[]
+      }
+    } catch {
+      // Fall through to static POI fallback.
+    }
+  }
+
   const center = inferCenter(options.city) ?? inferCenter(options.keywords)
   if (!center) return []
 
@@ -114,6 +153,23 @@ export async function fetchAmapRoute(options: {
   destination: [number, number]
   mode?: 'walking' | 'driving'
 }): Promise<AmapRouteSegment> {
+  if (hasApiBaseUrl()) {
+    try {
+      const params = new URLSearchParams({
+        origin: options.origin.join(','),
+        destination: options.destination.join(','),
+        mode: options.mode || 'walking',
+      })
+      const response = await fetch(apiUrl(`/api/amap/route?${params.toString()}`))
+      if (response.ok) {
+        const data = await response.json()
+        if (data?.ok && data.route) return data.route as AmapRouteSegment
+      }
+    } catch {
+      // Fall through to synthetic route fallback.
+    }
+  }
+
   const [originLng, originLat] = options.origin
   const [destinationLng, destinationLat] = options.destination
   const distance = Math.hypot(destinationLng - originLng, destinationLat - originLat) * 100000
