@@ -35,6 +35,7 @@ const createFallbackDay = (city: string, day: number): DayPlan => {
 export const alignPlanDayCount = (plan: TravelPlan, profile: TravelProfile): TravelPlan => {
   const desiredDays = extractRequestedDays(profile)
   const baseCity = normalizeCity(plan.selectedRecommendation?.planningCity || plan.selectedRecommendation?.city || profile.destinationCity || '目的地')
+  const originalDays = Array.isArray(plan.dayPlans) ? plan.dayPlans.length : 0
   const normalizedDays = Array.isArray(plan.dayPlans) ? plan.dayPlans.slice(0, desiredDays) : []
 
   while (normalizedDays.length < desiredDays) {
@@ -46,10 +47,13 @@ export const alignPlanDayCount = (plan: TravelPlan, profile: TravelProfile): Tra
     day: index + 1,
   }))
 
+  const notes = Array.isArray(plan.notes) ? plan.notes : []
+  const dayCountNote = `已按用户要求将行程校正为 ${desiredDays} 天。`
+
   return {
     ...plan,
     dayPlans: renumbered,
-    notes: Array.isArray(plan.notes) ? plan.notes : [],
+    notes: originalDays === desiredDays || notes.some((item) => item.includes(`${desiredDays} 天`)) ? notes : [...notes, dayCountNote],
   }
 }
 

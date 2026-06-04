@@ -188,23 +188,6 @@ export function resolveLivePricingQuery(profile: TravelProfile, plan: TravelPlan
 }
 
 export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePricingResult> {
-  const search = new URLSearchParams({
-    originCode: query.originCode,
-    destinationCode: query.destinationCode,
-    departureDate: query.departureDate,
-    returnDate: query.returnDate,
-    cityCode: query.destinationCode,
-    checkInDate: query.checkInDate,
-    checkOutDate: query.checkOutDate,
-    adults: String(query.adults),
-    roomQuantity: String(query.roomQuantity),
-    tripDays: String(query.tripDays),
-    originCity: query.originCity,
-    destinationCity: query.destinationCity,
-    approximateDates: query.approximateDates ? '1' : '0',
-    querySummary: query.querySummary,
-  })
-
   void emitTelemetry('pricing.search.start', {
     origin: query.originCode,
     destination: query.destinationCode,
@@ -212,19 +195,115 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
     returnDate: query.returnDate,
   })
 
-  const response = await fetch(`/api/pricing/search?${search.toString()}`)
-  const payload = await response.json()
-  if (!response.ok || payload?.ok === false) {
-    const error = String(payload?.error || payload?.message || 'pricing_search_failed')
-    void emitTelemetry('pricing.search.end', { ok: false, error })
-    throw new Error(error)
+  const international = !['BJS', 'SHA', 'CAN', 'SZX', 'HGH', 'CTU', 'CKG', 'XIY', 'ZUH', 'TAO', 'XMN', 'NKG', 'WUH', 'CSX', 'SYX', 'KMG', 'DLC', 'TSN'].includes(query.destinationCode)
+  const flightBase = international ? 3200 : 980
+  const hotelBase = international ? 820 : 420
+  const trainAvailable = !international && query.originCode !== query.destinationCode
+  const outboundAt = `${query.departureDate}T09:20:00+08:00`
+  const outboundArriveAt = `${query.departureDate}T12:05:00+08:00`
+  const inboundAt = `${query.returnDate}T16:30:00+08:00`
+  const inboundArriveAt = `${query.returnDate}T19:15:00+08:00`
+  const totalFlightPrice = Math.round((flightBase + query.tripDays * 60) * Math.max(query.adults, 1))
+  const hotelNights = Math.max(1, query.tripDays)
+
+  const payload: LivePricingResult = {
+    provider: 'mixed',
+    configured: false,
+    query,
+    fetchedAt: new Date().toISOString(),
+    warnings: [
+      '当前为 GitHub Pages 静态版，报价为本地估算，用于行程预算参考。',
+      ...(query.approximateDates ? ['日期来自自然语言推断，提供精确日期可让预算更贴近实际。'] : []),
+    ],
+    flights: [
+      {
+        id: 'static-flight-1',
+        source: 'static-estimate',
+        airlineCodes: ['CA'],
+        validatingAirlineCodes: ['估算航司'],
+        totalPrice: totalFlightPrice,
+        currency: 'CNY',
+        bookableSeats: Math.max(2, query.adults + 2),
+        itineraries: [
+          [
+            {
+              carrierCode: 'CA',
+              flightNumber: `${query.originCode}${query.destinationCode} 参考`,
+              departureIata: query.originCode,
+              arrivalIata: query.destinationCode,
+              departureAt: outboundAt,
+              arrivalAt: outboundArriveAt,
+              duration: 'PT2H45M',
+            },
+          ],
+          [
+            {
+              carrierCode: 'CA',
+              flightNumber: `${query.destinationCode}${query.originCode} 参考`,
+              departureIata: query.destinationCode,
+              arrivalIata: query.originCode,
+              departureAt: inboundAt,
+              arrivalAt: inboundArriveAt,
+              duration: 'PT2H45M',
+            },
+          ],
+        ],
+      },
+    ],
+    hotels: [
+      {
+        id: 'static-hotel-1',
+        hotelId: 'static-hotel-comfort',
+        hotelName: `${query.destinationCity}舒适精选酒店`,
+        cityCode: query.destinationCode,
+        address: `${query.destinationCity}核心商圈或交通便利区域`,
+        roomType: '舒适大床/双床房',
+        boardType: '不含早',
+        refundable: true,
+        totalPrice: Math.round(hotelBase * hotelNights * query.roomQuantity),
+        currency: 'CNY',
+        source: 'static-estimate',
+      },
+      {
+        id: 'static-hotel-2',
+        hotelId: 'static-hotel-boutique',
+        hotelName: `${query.destinationCity}设计感精品住宿`,
+        cityCode: query.destinationCode,
+        address: `${query.destinationCity}热门街区附近`,
+        roomType: '精品房型',
+        boardType: '部分含早',
+        refundable: true,
+        totalPrice: Math.round(hotelBase * 1.35 * hotelNights * query.roomQuantity),
+        currency: 'CNY',
+        source: 'static-estimate',
+      },
+    ],
+    trains: trainAvailable
+      ? [
+          {
+            id: 'static-train-1',
+            source: 'static-estimate',
+            trainNumber: 'G 参考车次',
+            departureStation: `${query.originCity}站`,
+            arrivalStation: `${query.destinationCity}站`,
+            departureAt: `${query.departureDate}T08:00:00+08:00`,
+            arrivalAt: `${query.departureDate}T13:30:00+08:00`,
+            duration: '约5小时30分钟',
+            seatType: '二等座',
+            availability: '参考余票',
+            totalPrice: Math.round(360 * Math.max(query.adults, 1)),
+            currency: 'CNY',
+            notes: '静态估算票价',
+          },
+        ]
+      : [],
   }
 
   void emitTelemetry('pricing.search.end', {
     ok: true,
-    flights: Array.isArray(payload?.flights) ? payload.flights.length : 0,
-    hotels: Array.isArray(payload?.hotels) ? payload.hotels.length : 0,
+    flights: payload.flights.length,
+    hotels: payload.hotels.length,
   })
 
-  return payload as LivePricingResult
+  return payload
 }

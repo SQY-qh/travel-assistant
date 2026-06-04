@@ -32,9 +32,12 @@ jobs:
         run: npm ci
 
       - name: Build
-        env:
-          VITE_BASE: /${{ github.event.repository.name }}/
-        run: npm run build
+        run: |
+          if [[ "${{ github.event.repository.name }}" == *.github.io ]]; then
+            VITE_BASE="/" npm run build
+          else
+            VITE_BASE="/${{ github.event.repository.name }}/" npm run build
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
