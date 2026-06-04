@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Shenyang palace travel cover">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1c47a"/>
+      <stop offset=".62" stop-color="#f4e6cf"/>
+      <stop offset="1" stop-color="#c9b18c"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <circle cx="766" cy="120" r="68" fill="#fff3cb" opacity=".72"/>
+  <rect y="394" width="960" height="146" fill="#8b4433"/>
+  <rect x="124" y="320" width="708" height="92" rx="8" fill="#a93627"/>
+  <rect x="170" y="260" width="616" height="82" fill="#b8452f"/>
+  <path d="M108 318 L478 166 L848 318 Z" fill="#2b3337"/>
+  <path d="M172 260 L478 120 L786 260 Z" fill="#344046"/>
+  <path d="M232 250 L478 146 L724 250 Z" fill="#cfb06c"/>
+  <rect x="210" y="342" width="68" height="72" fill="#703221"/>
+  <rect x="330" y="342" width="68" height="72" fill="#703221"/>
+  <rect x="450" y="342" width="68" height="72" fill="#703221"/>
+  <rect x="570" y="342" width="68" height="72" fill="#703221"/>
+  <rect x="690" y="342" width="68" height="72" fill="#703221"/>
+  <g fill="#f4d477">
+    <circle cx="244" cy="356" r="11"/>
+    <circle cx="364" cy="356" r="11"/>
+    <circle cx="484" cy="356" r="11"/>
+    <circle cx="604" cy="356" r="11"/>
+    <circle cx="724" cy="356" r="11"/>
+  </g>
+  <path d="M0 438 C154 412 318 460 484 430 S752 410 960 446 V540 H0Z" fill="#6e2f25" opacity=".75"/>
+</svg>

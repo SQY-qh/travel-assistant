@@ -1,3 +1,4 @@
+import { destinationCoverImage } from '@/data/destinationImages'
 import { chatCompletion, hasGPTConfig } from '@/services/providers/gptProvider'
 import type { DayPlan, TravelPlan, TravelProfile } from '@/types/travel'
 
@@ -122,28 +123,14 @@ ${JSON.stringify(profile, null, 2)}
     const parsed = safeJsonParse(response)
     if (!isPlanShape(parsed)) return null
 
-    const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
-    const localTravelImages = [
-      'outfits/wuhan-citywalk.png',
-      'outfits/wuhan-evening-riverside.png',
-      'outfits/wuhan-rainy-museum.png',
-      'outfits/citywalk-women.jpg',
-      'outfits/evening-dinner-men.jpg',
-    ]
-    const imageFromPrompt = (prompt: string) => {
-      const hash = Array.from(prompt).reduce((total, char) => total + char.charCodeAt(0), 0)
-      return assetUrl(localTravelImages[hash % localTravelImages.length])
-    }
-
-    const normalizeCoverImage = (value: unknown) => {
-      if (typeof value !== 'string') return imageFromPrompt('minimal travel cover photo, warm sunlight, premium editorial style')
-      if (value.startsWith('http://') || value.startsWith('https://')) return value
-      return imageFromPrompt(value)
+    const normalizeCoverImage = (value: unknown, city?: string) => {
+      const prompt = typeof value === 'string' ? value : ''
+      return destinationCoverImage(`${city || ''} ${prompt}`)
     }
 
     const recommendations = parsed.recommendations.map((item: any) => ({
       ...item,
-      coverImage: normalizeCoverImage(item.coverImage),
+      coverImage: normalizeCoverImage(item.coverImage, item.city),
     }))
 
     const selectedId = parsed.selectedRecommendation?.id
@@ -151,7 +138,7 @@ ${JSON.stringify(profile, null, 2)}
       recommendations.find((item: any) => item.id === selectedId) ??
       ({
         ...parsed.selectedRecommendation,
-        coverImage: normalizeCoverImage(parsed.selectedRecommendation?.coverImage),
+        coverImage: normalizeCoverImage(parsed.selectedRecommendation?.coverImage, parsed.selectedRecommendation?.city),
       } as any)
 
     const normalized: TravelPlan = {

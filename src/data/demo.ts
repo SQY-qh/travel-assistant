@@ -1,3 +1,4 @@
+import { destinationCoverImage } from '@/data/destinationImages'
 import type {
   DayPlan,
   DestinationRecommendation,
@@ -8,17 +9,6 @@ import type {
 } from '@/types/travel'
 
 const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
-const localTravelImages = [
-  'outfits/wuhan-citywalk.png',
-  'outfits/wuhan-evening-riverside.png',
-  'outfits/wuhan-rainy-museum.png',
-  'outfits/citywalk-women.jpg',
-  'outfits/evening-dinner-men.jpg',
-]
-const imageFromPrompt = (prompt: string) => {
-  const hash = Array.from(prompt).reduce((total, char) => total + char.charCodeAt(0), 0)
-  return assetUrl(localTravelImages[hash % localTravelImages.length])
-}
 
 export const mascotImage = assetUrl('voya-mascot.svg')
 
@@ -59,9 +49,7 @@ export const destinationTemplates: DestinationTemplate[] = [
       country: '日本',
       bestWindow: '春樱与秋叶季最出片',
       highlights: ['城市节奏高级', '购物与美术馆兼顾', '线路成熟适合首刷'],
-      coverImage: imageFromPrompt(
-        'Tokyo travel destination, evening city lights, elegant streets, stylish travelers, premium editorial photography, warm cinematic color',
-      ),
+      coverImage: destinationCoverImage('东京'),
       weatherSummary: '适合城市漫游与夜景打卡，雨天也有室内替代方案。',
       mapCenter: [139.6917, 35.6895],
     },
@@ -139,9 +127,7 @@ export const destinationTemplates: DestinationTemplate[] = [
       country: '中国',
       bestWindow: '春秋两季最舒适，吃喝体验稳定',
       highlights: ['适合慢节奏回血', '美食密度高', '亲子与朋友同行都舒服'],
-      coverImage: imageFromPrompt(
-        'Chengdu travel destination, tea house, street food, panda city, premium lifestyle editorial image, warm sunlight',
-      ),
+      coverImage: destinationCoverImage('成都'),
       weatherSummary: '适合松弛感 citywalk，阴天也很好拍。',
       mapCenter: [104.0665, 30.5728],
     },
@@ -217,9 +203,7 @@ export const destinationTemplates: DestinationTemplate[] = [
       country: '新加坡',
       bestWindow: '全年可去，适合亲子与高确定性出境',
       highlights: ['城市整洁，适合亲子', '路线紧凑，转场成本低', '政策信息明确，体验稳定'],
-      coverImage: imageFromPrompt(
-        'Singapore travel destination, marina bay skyline, family friendly premium travel campaign, bright tropical light, clean and elegant',
-      ),
+      coverImage: destinationCoverImage('新加坡'),
       weatherSummary: '热带气候偏闷热，室内商场与景点丰富。',
       mapCenter: [103.8198, 1.3521],
     },

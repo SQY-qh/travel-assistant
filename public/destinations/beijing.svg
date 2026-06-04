@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Beijing travel cover">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5d6a2"/>
+      <stop offset=".55" stop-color="#dbe8ea"/>
+      <stop offset="1" stop-color="#8aa5a8"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <circle cx="760" cy="112" r="58" fill="#fff4cc" opacity=".78"/>
+  <rect y="390" width="960" height="150" fill="#8f3b2f"/>
+  <path d="M110 352 L480 184 L850 352 Z" fill="#2d3436"/>
+  <path d="M190 314 L480 158 L770 314 Z" fill="#c29a57"/>
+  <rect x="164" y="340" width="672" height="92" rx="8" fill="#b6412e"/>
+  <rect x="244" y="282" width="512" height="70" fill="#c85235"/>
+  <path d="M224 282 L480 132 L756 282 Z" fill="#31393c"/>
+  <rect x="430" y="348" width="92" height="84" fill="#5a2c22"/>
+  <g fill="#f6d37c">
+    <rect x="224" y="362" width="36" height="16" rx="3"/>
+    <rect x="302" y="362" width="36" height="16" rx="3"/>
+    <rect x="570" y="362" width="36" height="16" rx="3"/>
+    <rect x="650" y="362" width="36" height="16" rx="3"/>
+  </g>
+  <path d="M0 452 C180 422 330 482 500 448 S780 420 960 462 V540 H0Z" fill="#6c2e27" opacity=".65"/>
+</svg>

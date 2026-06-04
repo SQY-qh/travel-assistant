@@ -1,4 +1,5 @@
 import { destinationTemplates } from '@/data/demo'
+import { destinationCoverImage, hasOutfitCoverImage } from '@/data/destinationImages'
 import { selectOutfitsForTrip } from '@/data/outfits'
 import { chatCompletion, hasGPTConfig, maybeRefineReply } from '@/services/providers/gptProvider'
 import { alignPlanDayCount, generatePlanWithLLM } from '@/services/llmPlan'
@@ -22,18 +23,6 @@ import { createEmptyProfile, type ConversationTurnResult, type DayPlan, type Des
         const accommodationKeywords = ['精品酒店', '酒店', '民宿', '海景房', '亲子酒店']
         const transportKeywords = ['飞机', '高铁', '自驾', '地铁', '公共交通']
         const visaKeywords = ['免签', '已有签证', '需要签证', '落地签']
-const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
-const localTravelImages = [
-  'outfits/wuhan-citywalk.png',
-  'outfits/wuhan-evening-riverside.png',
-  'outfits/wuhan-rainy-museum.png',
-  'outfits/citywalk-women.jpg',
-  'outfits/evening-dinner-men.jpg',
-]
-const imageFromPrompt = (prompt: string) => {
-  const hash = Array.from(prompt).reduce((total, char) => total + char.charCodeAt(0), 0)
-  return assetUrl(localTravelImages[hash % localTravelImages.length])
-}
 const normalizeCityName = (value: string) => value.replace(/市|特别行政区|自治区|省/g, '').trim()
 const domesticCities = new Set(['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '西安', '青岛', '厦门', '南京', '苏州', '武汉', '长沙', '沈阳', '大连', '长春', '哈尔滨', '天津', '济南', '郑州', '合肥', '福州', '南昌', '昆明', '贵阳', '南宁', '海口', '三亚', '大理', '丽江', '珠海', '桂林', '拉萨', '宁波', '无锡'])
 const cityCenters: Record<string, [number, number]> = {
@@ -641,6 +630,13 @@ const needsDetailedCityUpgrade = (plan: TravelPlan, city: string) =>
     return /地标景点|主题街区|特色体验|在地社区|备选景点|周边目的地|市中心漫步|核心区轻松走一圈/.test(text)
   })
 
+const normalizeDestinationCover = (coverImage: string | undefined, city: string) => {
+  if (!coverImage || hasOutfitCoverImage(coverImage)) {
+    return destinationCoverImage(city)
+  }
+  return coverImage
+}
+
 export const ensurePlanCityConsistency = (plan: TravelPlan): TravelPlan => {
   const city = normalizeCityName(plan.selectedRecommendation.city)
   if (!city) return plan
@@ -653,7 +649,15 @@ export const ensurePlanCityConsistency = (plan: TravelPlan): TravelPlan => {
     selectedRecommendation: {
       ...plan.selectedRecommendation,
       mapCenter,
+      coverImage: normalizeDestinationCover(plan.selectedRecommendation.coverImage, city),
     },
+    recommendations: plan.recommendations.map((recommendation) => {
+      const recommendationCity = normalizeCityName(recommendation.city) || city
+      return {
+        ...recommendation,
+        coverImage: normalizeDestinationCover(recommendation.coverImage, recommendationCity),
+      }
+    }),
     policyCards: ensureCityScopedPolicyCards(plan.policyCards, city),
     outfitSuggestions: selectOutfitsForTrip({ ...createEmptyProfile(), destinationCity: city }, city),
     dayPlans: upgradedDayPlans.map((dayPlan) => ({
@@ -690,7 +694,7 @@ const buildRequestedCityPlan = (
     highlights: buildCityHighlights(requestedCity),
     reasons: buildReasons(profile, requestedCity),
     matchReason: buildCityMatchReason(requestedCity),
-    coverImage: imageFromPrompt(`${requestedCity} travel destination, premium editorial style, realistic cityscape, warm light, mobile app hero image`),
+    coverImage: destinationCoverImage(requestedCity),
     weatherSummary: `${requestedCity} 行程会按季节、天气和你的偏好灵活调整，优先保证步行舒适度。`,
     mapCenter: cityCenters[requestedCity] ?? base.template.recommendation.mapCenter,
   }
@@ -749,7 +753,7 @@ const buildRequestedCityPlan = (
                   highlights: buildCityHighlights(requestedCity),
                   reasons: buildReasons(profile, requestedCity),
                   matchReason: buildCityMatchReason(requestedCity),
-                  coverImage: imageFromPrompt(`${requestedCity} travel destination, premium editorial style, realistic cityscape, warm light, mobile app hero image`),
+                  coverImage: destinationCoverImage(requestedCity),
                   weatherSummary: `${requestedCity} 行程会按季节、天气和你的偏好灵活调整，优先保证步行舒适度。`,
                   mapCenter: cityCenters[requestedCity] ?? ranked[0].template.recommendation.mapCenter,
                 }

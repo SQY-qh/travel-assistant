@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Singapore marina skyline travel cover">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#bfe7eb"/>
+      <stop offset=".55" stop-color="#f2d18b"/>
+      <stop offset="1" stop-color="#4b8a8c"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7cc4c9"/>
+      <stop offset="1" stop-color="#3a8b94"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <circle cx="770" cy="114" r="60" fill="#fff0bd" opacity=".74"/>
+  <rect y="368" width="960" height="172" fill="url(#water)"/>
+  <g fill="#172b32">
+    <rect x="128" y="238" width="84" height="150" rx="8"/>
+    <rect x="270" y="192" width="94" height="196" rx="9"/>
+    <rect x="520" y="176" width="88" height="212" rx="9"/>
+    <rect x="666" y="226" width="88" height="162" rx="8"/>
+  </g>
+  <path d="M360 296 C442 232 548 232 628 296" fill="none" stroke="#172b32" stroke-width="34" stroke-linecap="round"/>
+  <rect x="322" y="290" width="350" height="48" rx="24" fill="#f5efe3"/>
+  <path d="M214 388 C298 318 444 316 552 388" fill="none" stroke="#e6f3ee" stroke-width="22" opacity=".85"/>
+  <path d="M0 434 C170 400 310 475 490 430 S760 402 960 450 V540 H0Z" fill="#2c6f78" opacity=".72"/>
+</svg>

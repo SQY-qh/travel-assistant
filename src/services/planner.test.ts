@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildTravelPlan, collectConversationTurn, extractProfileFromText, getMissingFields } from '@/services/planner'
+import { buildTravelPlan, collectConversationTurn, ensurePlanCityConsistency, extractProfileFromText, getMissingFields } from '@/services/planner'
 import { alignPlanDayCount } from '@/services/llmPlan'
 import { createEmptyProfile } from '@/types/travel'
 
@@ -109,6 +109,63 @@ describe('planner service', () => {
     expect(plan.selectedRecommendation.city).toBe('沈阳')
     expect(plan.selectedRecommendation.mapCenter).toEqual([123.4315, 41.8057])
     expect(plan.selectedRecommendation.mapCenter).not.toEqual([116.4074, 39.9042])
+  })
+
+  it('用户明确指定上海时，封面不应使用穿搭图', () => {
+    const plan = buildTravelPlan({
+      ...createEmptyProfile(),
+      departureCity: '北京',
+      destinationCity: '上海',
+      destinationIntent: '城市漫游',
+      dateRange: '7月 · 3天',
+      travelers: '情侣',
+      budgetLevel: '中等预算',
+      travelStyle: ['城市', '轻松'],
+      accommodationPreference: '精品酒店',
+      transportPreference: '高铁',
+      visaStatus: '',
+      notes: '',
+    })
+
+    expect(plan.selectedRecommendation.city).toBe('上海')
+    expect(plan.selectedRecommendation.coverImage).toContain('destinations/shanghai.svg')
+    expect(plan.selectedRecommendation.coverImage).not.toContain('outfits')
+  })
+
+  it('旧缓存中的穿搭封面应按当前城市修正为目的地封面', () => {
+    const plan = buildTravelPlan({
+      ...createEmptyProfile(),
+      departureCity: '北京',
+      destinationCity: '上海',
+      destinationIntent: '城市漫游',
+      dateRange: '7月 · 3天',
+      travelers: '情侣',
+      budgetLevel: '中等预算',
+      travelStyle: ['城市'],
+      accommodationPreference: '',
+      transportPreference: '高铁',
+      visaStatus: '',
+      notes: '',
+    })
+
+    const repaired = ensurePlanCityConsistency({
+      ...plan,
+      selectedRecommendation: {
+        ...plan.selectedRecommendation,
+        coverImage: '/travel-assistant/outfits/citywalk-women.jpg',
+      },
+      recommendations: plan.recommendations.map((recommendation, index) =>
+        index === 0
+          ? {
+              ...recommendation,
+              coverImage: 'outfits/wuhan-citywalk.png',
+            }
+          : recommendation,
+      ),
+    })
+
+    expect(repaired.selectedRecommendation.coverImage).toContain('destinations/shanghai.svg')
+    expect(repaired.recommendations[0].coverImage).toContain('destinations/shanghai.svg')
   })
 
   it('切换到其他候选时也应保留用户明确指定的目的地候选', () => {

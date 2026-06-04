@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Chengdu tea house travel cover">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9c46a"/>
+      <stop offset=".48" stop-color="#dfe6c4"/>
+      <stop offset="1" stop-color="#6f9a76"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <circle cx="758" cy="116" r="64" fill="#fff2bc" opacity=".72"/>
+  <path d="M0 386 C130 330 250 390 360 344 S600 310 960 360 V540 H0Z" fill="#5f8d60"/>
+  <path d="M0 432 C190 390 310 470 500 424 S770 390 960 442 V540 H0Z" fill="#3f6f51"/>
+  <rect x="196" y="304" width="556" height="120" rx="10" fill="#9f4c2f"/>
+  <path d="M150 304 L478 178 L804 304 Z" fill="#2d3a34"/>
+  <path d="M240 292 L478 210 L720 292 Z" fill="#c99a57"/>
+  <rect x="282" y="332" width="86" height="92" fill="#633321"/>
+  <rect x="436" y="332" width="86" height="92" fill="#633321"/>
+  <rect x="590" y="332" width="86" height="92" fill="#633321"/>
+  <circle cx="152" cy="286" r="56" fill="#2f5f42"/>
+  <circle cx="116" cy="318" r="44" fill="#3f744f"/>
+  <circle cx="820" cy="308" r="60" fill="#315f43"/>
+  <circle cx="870" cy="346" r="42" fill="#437653"/>
+</svg>
