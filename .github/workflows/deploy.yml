@@ -41,6 +41,7 @@ jobs:
           else
             VITE_BASE="/${{ github.event.repository.name }}/" npm run build
           fi
+          cp dist/index.html dist/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
