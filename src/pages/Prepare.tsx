@@ -67,11 +67,12 @@ const cleanHotelRoom = (roomType: string) => {
   return roomType
 }
 
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
 const defaultOutfitImages = [
-  '/outfits/citywalk-women.jpg',
-  '/outfits/citywalk-men.jpg',
-  '/outfits/rainy-indoor-women.jpg',
-  '/outfits/evening-dinner-men.jpg',
+  assetUrl('outfits/citywalk-women.jpg'),
+  assetUrl('outfits/citywalk-men.jpg'),
+  assetUrl('outfits/rainy-indoor-women.jpg'),
+  assetUrl('outfits/evening-dinner-men.jpg'),
 ]
 
 export default function Prepare() {

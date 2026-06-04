@@ -7,13 +7,20 @@ import type {
   PolicyCard,
 } from '@/types/travel'
 
-const imageFromPrompt = (prompt: string, size = 'portrait_16_9') =>
-  `https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
+const localTravelImages = [
+  'outfits/wuhan-citywalk.png',
+  'outfits/wuhan-evening-riverside.png',
+  'outfits/wuhan-rainy-museum.png',
+  'outfits/citywalk-women.jpg',
+  'outfits/evening-dinner-men.jpg',
+]
+const imageFromPrompt = (prompt: string) => {
+  const hash = Array.from(prompt).reduce((total, char) => total + char.charCodeAt(0), 0)
+  return assetUrl(localTravelImages[hash % localTravelImages.length])
+}
 
-export const mascotImage = imageFromPrompt(
-  'friendly travel assistant mascot, cute robot in yellow raincoat waving, premium 3d toy style, white studio backdrop, warm soft light, product quality render',
-  'portrait_4_3',
-)
+export const mascotImage = assetUrl('outfits/wuhan-citywalk.png')
 
 export const quickPrompts = [
   '我想从上海出发，7 月去一个适合情侣放松的海边目的地，预算中等',

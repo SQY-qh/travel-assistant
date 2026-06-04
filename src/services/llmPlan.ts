@@ -122,8 +122,18 @@ ${JSON.stringify(profile, null, 2)}
     const parsed = safeJsonParse(response)
     if (!isPlanShape(parsed)) return null
 
-    const imageFromPrompt = (prompt: string, size = 'portrait_16_9') =>
-      `https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`
+    const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
+    const localTravelImages = [
+      'outfits/wuhan-citywalk.png',
+      'outfits/wuhan-evening-riverside.png',
+      'outfits/wuhan-rainy-museum.png',
+      'outfits/citywalk-women.jpg',
+      'outfits/evening-dinner-men.jpg',
+    ]
+    const imageFromPrompt = (prompt: string) => {
+      const hash = Array.from(prompt).reduce((total, char) => total + char.charCodeAt(0), 0)
+      return assetUrl(localTravelImages[hash % localTravelImages.length])
+    }
 
     const normalizeCoverImage = (value: unknown) => {
       if (typeof value !== 'string') return imageFromPrompt('minimal travel cover photo, warm sunlight, premium editorial style')

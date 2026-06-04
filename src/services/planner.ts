@@ -22,8 +22,18 @@ import { createEmptyProfile, type ConversationTurnResult, type DayPlan, type Des
         const accommodationKeywords = ['精品酒店', '酒店', '民宿', '海景房', '亲子酒店']
         const transportKeywords = ['飞机', '高铁', '自驾', '地铁', '公共交通']
         const visaKeywords = ['免签', '已有签证', '需要签证', '落地签']
-const imageFromPrompt = (prompt: string, size = 'portrait_16_9') =>
-  `https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
+const localTravelImages = [
+  'outfits/wuhan-citywalk.png',
+  'outfits/wuhan-evening-riverside.png',
+  'outfits/wuhan-rainy-museum.png',
+  'outfits/citywalk-women.jpg',
+  'outfits/evening-dinner-men.jpg',
+]
+const imageFromPrompt = (prompt: string) => {
+  const hash = Array.from(prompt).reduce((total, char) => total + char.charCodeAt(0), 0)
+  return assetUrl(localTravelImages[hash % localTravelImages.length])
+}
 const normalizeCityName = (value: string) => value.replace(/市|特别行政区|自治区|省/g, '').trim()
 const domesticCities = new Set(['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '西安', '青岛', '厦门', '南京', '苏州', '武汉', '长沙', '三亚', '昆明', '大理', '丽江', '哈尔滨', '天津', '珠海', '桂林', '拉萨', '福州', '宁波', '无锡'])
 const cityCenters: Record<string, [number, number]> = {
