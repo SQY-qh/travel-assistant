@@ -43,7 +43,8 @@ jobs:
             VITE_BASE="/${{ github.event.repository.name }}/" npm run build
           fi
           cp dist/index.html dist/404.html
-          mkdir -p dist/plan dist/prepare
+          mkdir -p dist/call dist/plan dist/prepare
+          cp dist/index.html dist/call/index.html
           cp dist/index.html dist/plan/index.html
           cp dist/index.html dist/prepare/index.html
 

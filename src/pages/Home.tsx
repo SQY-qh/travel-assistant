@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react'
-import { Mic, RefreshCcw, SendHorizonal, Sparkles } from 'lucide-react'
+import { Mic, PhoneCall, RefreshCcw, SendHorizonal, Sparkles } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ChatMessage from '@/components/chat/ChatMessage'
 import QuickPromptStrip from '@/components/chat/QuickPromptStrip'
@@ -77,6 +77,14 @@ export default function Home() {
               </span>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => navigate('/call')}
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-stone-800"
+          >
+            <PhoneCall className="h-4 w-4" />
+            打电话给 VOYA
+          </button>
         </div>
       </SectionCard>
 

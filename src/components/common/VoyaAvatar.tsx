@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 
 type VoyaAvatarProps = {
   state?: VoyaMotionState
-  size?: 'sm' | 'status' | 'hero'
+  size?: 'sm' | 'status' | 'hero' | 'call'
   className?: string
 }
 
@@ -12,12 +12,14 @@ const frameClassName = {
   sm: 'h-10 w-10 rounded-2xl border border-amber-100 bg-white shadow-sm',
   status: 'h-12 w-12 rounded-[22px] border border-amber-100 bg-white shadow-sm',
   hero: 'mx-auto mt-4 h-52 w-52 rounded-[34px] border border-white/80 bg-white/80 shadow-[0_18px_32px_rgba(176,124,39,0.22)]',
+  call: 'mx-auto h-64 w-64 rounded-full border-[10px] border-white bg-white/80 shadow-[0_24px_60px_rgba(176,124,39,0.20)]',
 }
 
 const videoClassName = {
   sm: 'scale-[1.35] object-cover object-top',
   status: 'scale-[1.28] object-cover object-top',
   hero: 'object-contain object-center',
+  call: 'object-cover object-top',
 }
 
 export default function VoyaAvatar({ state = 'listening', size = 'sm', className }: VoyaAvatarProps) {

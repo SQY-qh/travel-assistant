@@ -5,6 +5,12 @@ import { buildTravelPlan, buildTravelPlanAsync, collectConversationTurn, ensureP
 import { emitTelemetry } from '@/services/telemetry'
 import { createEmptyProfile, type ChatMessage, type RequiredField, type TravelPlan, type TravelProfile } from '@/types/travel'
 
+export type SubmitMessageResult = {
+  assistantMessages: string[]
+  spokenText: string
+  shouldGeneratePlan: boolean
+}
+
 type TravelState = {
   profile: TravelProfile
   messages: ChatMessage[]
@@ -13,7 +19,7 @@ type TravelState = {
   expectedField: RequiredField | ''
   lastSummary: string
   isGenerating: boolean
-  submitMessage: (text: string) => Promise<void>
+  submitMessage: (text: string) => Promise<SubmitMessageResult | null>
   generatePlanFromProfile: () => Promise<void>
   selectRecommendation: (id: string) => Promise<void>
   toggleMonitor: (id: string) => void
@@ -85,7 +91,8 @@ export const useTravelStore = create<TravelState>()(
       isGenerating: false,
       submitMessage: async (text) => {
         const trimmed = text.trim()
-        if (!trimmed) return
+        if (!trimmed) return null
+        const assistantMessages: string[] = []
 
         void emitTelemetry('chat.user', { content: trimmed })
 
@@ -97,6 +104,7 @@ export const useTravelStore = create<TravelState>()(
         try {
           const turn = await collectConversationTurn(get().profile, trimmed, get().expectedField || undefined)
           void emitTelemetry('chat.assistant', { content: turn.assistantMessage, summary: turn.summary })
+          assistantMessages.push(turn.assistantMessage)
           const nextState: Partial<TravelState> = {
             profile: turn.profile,
             lastSummary: turn.summary,
@@ -111,11 +119,17 @@ export const useTravelStore = create<TravelState>()(
           }))
 
           if (!turn.shouldGeneratePlan) {
-            return
+            return {
+              assistantMessages,
+              spokenText: turn.assistantMessage,
+              shouldGeneratePlan: false,
+            }
           }
 
+          const workingMessage = '信息已收齐，我正在生成行程、地图节点和准备清单，稍等片刻。'
+          assistantMessages.push(workingMessage)
           set((state) => ({
-            messages: [...state.messages, createMessage('assistant', '信息已收齐，我正在生成行程、地图节点和准备清单，稍等片刻。')],
+            messages: [...state.messages, createMessage('assistant', workingMessage)],
           }))
 
           if (turn.shouldGeneratePlan) {
@@ -130,25 +144,40 @@ export const useTravelStore = create<TravelState>()(
             refinePlanWithLLMAndAmapInBackground(rawPlan, turn.profile, get().activeRecommendationId || undefined)
           }
 
+          const finalMessage = `已生成 ${nextState.plan?.selectedRecommendation.city || '目的地'} 方案，可切换到底部“行程”和“准备”查看。`
+          assistantMessages.push(finalMessage)
           set((state) => ({
             ...state,
             ...nextState,
             isGenerating: false,
             messages: [
               ...state.messages,
-              createMessage('assistant', `已生成 ${nextState.plan?.selectedRecommendation.city || '目的地'} 方案，可切换到底部“行程”和“准备”查看。`),
+              createMessage('assistant', finalMessage),
             ],
           }))
+
+          return {
+            assistantMessages,
+            spokenText: finalMessage,
+            shouldGeneratePlan: true,
+          }
         } catch (error) {
           void emitTelemetry('plan.error', { error: String(error?.message || error) })
+          const errorMessage = '我刚刚在生成方案时遇到了一点问题。你可以再点一次“生成旅行方案”，或换一种说法补充需求，我会重新生成。'
+          assistantMessages.push(errorMessage)
           set((state) => ({
             ...state,
             isGenerating: false,
             messages: [
               ...state.messages,
-              createMessage('assistant', '我刚刚在生成方案时遇到了一点问题。你可以再点一次“生成旅行方案”，或换一种说法补充需求，我会重新生成。'),
+              createMessage('assistant', errorMessage),
             ],
           }))
+          return {
+            assistantMessages,
+            spokenText: errorMessage,
+            shouldGeneratePlan: false,
+          }
         }
       },
       generatePlanFromProfile: async () => {
