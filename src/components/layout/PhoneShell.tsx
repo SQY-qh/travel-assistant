@@ -15,7 +15,8 @@ type PhoneShellProps = {
 }
 
 export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
-  const isCallMode = currentPath === '/call'
+  const normalizedPath = currentPath === '/' ? '/' : currentPath.replace(/\/+$/, '')
+  const isCallMode = normalizedPath === '/call'
 
   return (
     <div className="relative mx-auto flex h-[860px] w-[390px] flex-col rounded-[44px] border-[10px] border-stone-900 bg-[#f7f3ec] p-2 shadow-[0_35px_80px_rgba(43,31,16,0.34)] ring-1 ring-white/40">
@@ -23,7 +24,7 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
       <div className="flex items-center justify-between px-6 pb-3 pt-6 text-[12px] font-semibold text-stone-700">
         <span>9:41</span>
         <div className="rounded-full bg-white/80 px-3 py-1 text-[11px] text-stone-600 shadow-sm">
-          {titles[currentPath] ?? 'VOYA'}
+          {titles[normalizedPath] ?? 'VOYA'}
         </div>
         <span>5G</span>
       </div>
