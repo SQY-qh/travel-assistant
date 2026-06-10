@@ -30,11 +30,76 @@ type SpeechRecognitionWindow = Window &
   }
 
 const statusLabel: Record<CallStatus, string> = {
-  idle: '点麦克风开始说话',
+  idle: 'VOYA 在等你开口',
   listening: '你可以开始说话',
-  thinking: 'VOYA 正在理解...',
-  speaking: 'VOYA 正在回答...',
+  thinking: 'VOYA 正在整理思路...',
+  speaking: 'VOYA 正在回答你',
 }
+
+const statusToneClassName: Record<CallStatus, string> = {
+  idle: 'bg-white/42 text-stone-500',
+  listening: 'bg-sky-50/80 text-sky-700',
+  thinking: 'bg-amber-50/82 text-amber-700',
+  speaking: 'bg-rose-50/82 text-rose-700',
+}
+
+const chineseVoiceKeywords = ['zh', 'chinese', 'mandarin', 'putonghua', '中文', '普通话', '国语', '中国']
+const youthfulVoiceKeywords = [
+  'xiaoxiao',
+  'xiaoyi',
+  'xiaobei',
+  'xiaoni',
+  'xiaohan',
+  'xiaomeng',
+  'ting-ting',
+  'tingting',
+  'mei-jia',
+  'meijia',
+  'sin-ji',
+  'sinji',
+  'lili',
+  'hanhan',
+  'huihui',
+  'female',
+  'woman',
+  'girl',
+  '晓晓',
+  '晓伊',
+  '晓北',
+  '晓妮',
+  '晓涵',
+  '小梦',
+  '婷婷',
+  '美佳',
+  '慧慧',
+  '莉莉',
+  '涵涵',
+  '女',
+  '少女',
+]
+const masculineVoiceKeywords = ['yunxi', 'yunjian', 'kangkang', 'male', 'man', '云希', '云健', '康康', '男']
+
+const includesAny = (value: string, keywords: string[]) => keywords.some((keyword) => value.includes(keyword))
+
+const isChineseVoice = (voice: SpeechSynthesisVoice) => {
+  const identity = `${voice.name} ${voice.lang}`.toLowerCase()
+  return includesAny(identity, chineseVoiceKeywords)
+}
+
+const scoreYouthfulChineseVoice = (voice: SpeechSynthesisVoice) => {
+  const identity = `${voice.name} ${voice.lang}`.toLowerCase()
+  let score = 0
+  if (voice.lang.toLowerCase() === 'zh-cn') score += 28
+  if (voice.lang.toLowerCase().startsWith('zh')) score += 22
+  if (includesAny(identity, youthfulVoiceKeywords)) score += 38
+  if (includesAny(identity, masculineVoiceKeywords)) score -= 50
+  if (voice.localService) score += 4
+  return score
+}
+
+const selectYouthfulChineseVoice = (voices: SpeechSynthesisVoice[]) =>
+  voices.filter(isChineseVoice).sort((first, second) => scoreYouthfulChineseVoice(second) - scoreYouthfulChineseVoice(first))[0] ??
+  voices.find((voice) => voice.lang.toLowerCase().startsWith('zh'))
 
 const getSpeechRecognition = () => {
   if (typeof window === 'undefined') return null
@@ -61,7 +126,7 @@ export default function Call() {
   const speechRecognitionSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
 
   const voyaState: VoyaMotionState =
-    status === 'listening' ? 'listening' : status === 'thinking' || status === 'speaking' ? 'talking' : assistantText ? 'nodding' : 'greeting'
+    status === 'listening' ? 'listening' : status === 'thinking' ? 'nodding' : status === 'speaking' ? 'sharing' : assistantText ? 'nodding' : 'greeting'
 
   const clearSpeechFallbackTimer = useCallback(() => {
     if (speechFallbackTimerRef.current) {
@@ -102,12 +167,10 @@ export default function Call() {
 
     const utterance = new SpeechSynthesisUtterance(cleaned)
     utterance.lang = 'zh-CN'
-    utterance.rate = 1
-    utterance.pitch = 1
+    utterance.rate = 1.06
+    utterance.pitch = 1.22
     utterance.volume = 1
-    const voice = synth
-      .getVoices()
-      .find((item) => item.lang.toLowerCase().includes('zh') || /chinese|中文|普通话/i.test(item.name))
+    const voice = selectYouthfulChineseVoice(synth.getVoices())
     if (voice) utterance.voice = voice
     utteranceRef.current = utterance
     setError('')
@@ -287,8 +350,36 @@ export default function Call() {
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-9 pb-4 pt-8">
-        <VoyaAvatar state={voyaState} size="call" />
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 pb-4 pt-6">
+        <div className="relative flex h-[352px] w-full items-center justify-center">
+          <span
+            className={cn(
+              'absolute h-72 w-72 rounded-full bg-white/38 blur-md transition',
+              status === 'speaking' && 'animate-ping bg-rose-200/36',
+              status === 'listening' && 'animate-pulse bg-sky-200/44',
+              status === 'thinking' && 'animate-pulse bg-amber-200/42',
+            )}
+          />
+          <span
+            className={cn(
+              'absolute h-[304px] w-[304px] rounded-full border border-white/62 transition',
+              status === 'speaking' && 'scale-105 border-rose-200/80',
+              status === 'listening' && 'border-sky-200/80',
+              status === 'thinking' && 'border-amber-200/80',
+            )}
+          />
+          <span className="absolute bottom-4 h-12 w-44 rounded-full bg-stone-800/12 blur-xl" />
+          <VoyaAvatar
+            state={voyaState}
+            size="call"
+            className={cn(
+              'relative z-10',
+              status === 'listening' && 'voya-call-listening',
+              status === 'thinking' && 'voya-call-float',
+              status === 'speaking' && 'voya-call-speaking',
+            )}
+          />
+        </div>
 
         <div className="w-full text-center">
           <div className="mb-5 flex justify-center gap-3">
@@ -303,7 +394,7 @@ export default function Call() {
               />
             ))}
           </div>
-          <p className="text-[20px] font-medium text-stone-600">{statusLabel[status]}</p>
+          <p className={cn('mx-auto inline-flex rounded-full px-5 py-2 text-[18px] font-semibold transition', statusToneClassName[status])}>{statusLabel[status]}</p>
 
           <div className="mx-auto mt-5 min-h-[76px] max-w-[310px] rounded-[28px] bg-white/34 px-4 py-3 text-left text-[12px] leading-6 text-stone-600 shadow-sm backdrop-blur">
             {error ? <p className="text-[#b31e3c]">{error}</p> : null}

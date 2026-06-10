@@ -68,6 +68,51 @@ div::-webkit-scrollbar-thumb {
   font-family: 'STKaiti', 'Kaiti SC', 'Songti SC', serif;
 }
 
+.voya-call-float {
+  animation: voya-call-float 3s ease-in-out infinite;
+}
+
+.voya-call-listening {
+  animation: voya-call-listening 1.8s ease-in-out infinite;
+}
+
+.voya-call-speaking {
+  animation: voya-call-speaking 1.15s ease-in-out infinite;
+}
+
+@keyframes voya-call-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes voya-call-listening {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-5px) scale(1.012);
+  }
+}
+
+@keyframes voya-call-speaking {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-0.35deg) scale(1);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(0.35deg) scale(1.018);
+  }
+}
+
 @media (max-width: 1024px) {
   body::before {
     opacity: 0.22;
