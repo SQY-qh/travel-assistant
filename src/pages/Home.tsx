@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import ChatMessage from '@/components/chat/ChatMessage'
 import QuickPromptStrip from '@/components/chat/QuickPromptStrip'
 import SectionCard from '@/components/common/SectionCard'
-import { mascotImage } from '@/data/demo'
+import VoyaAvatar from '@/components/common/VoyaAvatar'
 import { useTravelStore } from '@/store/useTravelStore'
 
 const summaryLabels: Record<string, string> = {
@@ -23,6 +23,7 @@ export default function Home() {
   const navigate = useNavigate()
   const [input, setInput] = useState('')
   const { messages, profile, plan, lastSummary, isGenerating, submitMessage, generatePlanFromProfile, resetConversation } = useTravelStore()
+  const trimmedInput = input.trim()
 
   const summaryItems = useMemo(
     () =>
@@ -32,6 +33,15 @@ export default function Home() {
         .slice(0, 8),
     [profile],
   )
+
+  const latestAssistantIndex = useMemo(() => {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index].role === 'assistant') return index
+    }
+    return -1
+  }, [messages])
+
+  const liveVoyaState = isGenerating ? 'talking' : trimmedInput ? 'listening' : messages.length > 1 ? 'nodding' : 'greeting'
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -57,8 +67,8 @@ export default function Home() {
             </span>
             通话采集中
           </div>
-          <img src={mascotImage} alt="VOYA 助手形象" className="mx-auto mt-4 h-48 w-48 object-contain drop-shadow-[0_18px_24px_rgba(176,124,39,0.24)]" />
-                  <h2 className="font-display mt-3 text-2xl text-stone-900">VOYA 正在听...</h2>
+          <VoyaAvatar state={liveVoyaState} size="hero" />
+                  <h2 className="font-display mt-3 text-2xl text-stone-900">{isGenerating ? 'VOYA 正在说...' : 'VOYA 正在听...'}</h2>
           <p className="mt-2 text-xs leading-6 text-stone-500">告诉我你的出发地、旅行风格、日期和预算，我会逐步把需求补齐。</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {['推荐景点', '当地美食', '交通路线', '购物推荐'].map((item) => (
@@ -110,14 +120,17 @@ export default function Home() {
 
       <SectionCard title="对话记录" eyebrow="Conversation Stream">
         <div className="space-y-3">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+          {messages.map((message, index) => (
+            <ChatMessage key={message.id} message={message} active={isGenerating && index === latestAssistantIndex} />
           ))}
           {isGenerating ? (
             <div className="rounded-[22px] bg-white px-4 py-3 text-[12px] text-stone-500 shadow-sm">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 animate-pulse text-amber-600" />
-                VOYA 正在整理你的旅行需求...
+              <div className="flex items-center gap-3">
+                <VoyaAvatar state="talking" size="status" />
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 animate-pulse text-amber-600" />
+                  VOYA 正在整理你的旅行需求...
+                </div>
               </div>
             </div>
           ) : null}

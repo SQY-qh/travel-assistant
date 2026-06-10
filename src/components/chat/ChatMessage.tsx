@@ -1,20 +1,20 @@
-import { Bot, UserRound } from 'lucide-react'
+import { UserRound } from 'lucide-react'
+import VoyaAvatar from '@/components/common/VoyaAvatar'
 import type { ChatMessage as ChatMessageType } from '@/types/travel'
 import { cn } from '@/lib/utils'
 
 type ChatMessageProps = {
   message: ChatMessageType
+  active?: boolean
 }
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+export default function ChatMessage({ message, active = false }: ChatMessageProps) {
   const isAssistant = message.role === 'assistant'
 
   return (
     <div className={cn('flex items-end gap-2', isAssistant ? 'justify-start' : 'justify-end')}>
       {isAssistant ? (
-        <div className="flex h-8 w-8 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-          <Bot className="h-4 w-4" />
-        </div>
+        <VoyaAvatar state={active ? 'talking' : 'nodding'} />
       ) : null}
       <div
         className={cn(

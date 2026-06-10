@@ -17,6 +17,9 @@ secrets/local.keys.env
 !secrets/*.example
 !secrets/*.env.example
 
+# Local source materials; publish optimized/selected assets from public/ instead.
+materials/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
