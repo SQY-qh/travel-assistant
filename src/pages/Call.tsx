@@ -54,39 +54,80 @@ export default function Call() {
   const [error, setError] = useState('')
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const finalTranscriptRef = useRef('')
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const speechFallbackTimerRef = useRef<number | null>(null)
+  const lastSpokenTextRef = useRef('')
 
   const speechRecognitionSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
 
   const voyaState: VoyaMotionState =
     status === 'listening' ? 'listening' : status === 'thinking' || status === 'speaking' ? 'talking' : assistantText ? 'nodding' : 'greeting'
 
+  const clearSpeechFallbackTimer = useCallback(() => {
+    if (speechFallbackTimerRef.current) {
+      window.clearTimeout(speechFallbackTimerRef.current)
+      speechFallbackTimerRef.current = null
+    }
+  }, [])
+
+  const stopSpeech = useCallback(() => {
+    clearSpeechFallbackTimer()
+    if (utteranceRef.current) {
+      utteranceRef.current.onend = null
+      utteranceRef.current.onerror = null
+    }
+    utteranceRef.current = null
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+  }, [clearSpeechFallbackTimer])
+
   const speakText = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) {
+    const cleaned = text.trim()
+    if (!cleaned) {
       setStatus('idle')
       return
     }
 
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
+    lastSpokenTextRef.current = cleaned
+    if (!('speechSynthesis' in window)) {
+      setError('当前浏览器不支持语音输出，只能显示文字回复。')
+      setStatus('idle')
+      return
+    }
+
+    const synth = window.speechSynthesis
+    synth.cancel()
+    clearSpeechFallbackTimer()
+
+    const utterance = new SpeechSynthesisUtterance(cleaned)
     utterance.lang = 'zh-CN'
     utterance.rate = 1
     utterance.pitch = 1
-    const voice = window.speechSynthesis
+    utterance.volume = 1
+    const voice = synth
       .getVoices()
       .find((item) => item.lang.toLowerCase().includes('zh') || /chinese|中文|普通话/i.test(item.name))
     if (voice) utterance.voice = voice
+    utteranceRef.current = utterance
+    setError('')
     setStatus('speaking')
-    const fallbackTimer = window.setTimeout(() => setStatus('idle'), Math.min(18000, Math.max(5000, text.length * 220)))
-    utterance.onend = () => {
-      window.clearTimeout(fallbackTimer)
+    const finishSpeaking = () => {
+      clearSpeechFallbackTimer()
+      utteranceRef.current = null
       setStatus('idle')
+    }
+    speechFallbackTimerRef.current = window.setTimeout(finishSpeaking, Math.min(18000, Math.max(5000, cleaned.length * 220)))
+    utterance.onend = () => {
+      finishSpeaking()
     }
     utterance.onerror = () => {
-      window.clearTimeout(fallbackTimer)
-      setStatus('idle')
+      finishSpeaking()
+      setError('如果没有听到 VOYA 的声音，请点音量按钮重播。')
     }
-    window.speechSynthesis.speak(utterance)
-  }, [])
+    synth.speak(utterance)
+    window.setTimeout(() => synth.resume(), 250)
+  }, [clearSpeechFallbackTimer])
 
   const processText = useCallback(
     async (value: string) => {
@@ -103,6 +144,7 @@ export default function Call() {
       const result = await submitVoiceMessage(cleaned)
       const spokenText = result?.spokenText || '我已经收到你的需求，可以继续告诉我更多细节。'
       setAssistantText(spokenText)
+      lastSpokenTextRef.current = spokenText
       if (voiceOutput) {
         speakText(spokenText)
       } else {
@@ -131,9 +173,7 @@ export default function Call() {
       return
     }
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
+    stopSpeech()
 
     const recognition = new Recognition()
     recognitionRef.current = recognition
@@ -184,7 +224,7 @@ export default function Call() {
       setTextMode(true)
       setError('麦克风暂时无法启动，可以点“字”手动输入。')
     }
-  }, [processText, status, stopListening])
+  }, [processText, status, stopListening, stopSpeech])
 
   const handleTextSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -192,36 +232,40 @@ export default function Call() {
   }
 
   const toggleVoiceOutput = () => {
-    setVoiceOutput((current) => {
-      const next = !current
-      if (!next && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-        setStatus((value) => (value === 'speaking' ? 'idle' : value))
-      }
-      return next
-    })
+    if (voiceOutput) {
+      setVoiceOutput(false)
+      stopSpeech()
+      setStatus((value) => (value === 'speaking' ? 'idle' : value))
+      return
+    }
+
+    setVoiceOutput(true)
+    const text = assistantText || lastSpokenTextRef.current
+    if (text) {
+      speakText(text)
+    }
   }
 
   const endCall = () => {
     recognitionRef.current?.abort()
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
+    stopSpeech()
     navigate('/')
   }
 
   useEffect(() => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.getVoices()
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices()
+      }
     }
 
     return () => {
       recognitionRef.current?.abort()
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-      }
+      stopSpeech()
+      if ('speechSynthesis' in window) window.speechSynthesis.onvoiceschanged = null
     }
-  }, [])
+  }, [stopSpeech])
 
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,221,232,0.92),_rgba(244,236,255,0.9)_48%,_rgba(238,246,255,0.92)_100%)] px-5 pb-6 pt-5 text-stone-900">
@@ -319,7 +363,7 @@ export default function Call() {
           type="button"
           onClick={toggleVoiceOutput}
           className={cn('flex aspect-square items-center justify-center rounded-full bg-white/38 text-stone-900 shadow-sm backdrop-blur transition', !voiceOutput && 'text-stone-400')}
-          aria-label={voiceOutput ? '关闭语音输出' : '开启语音输出'}
+          aria-label={voiceOutput ? '关闭语音输出' : assistantText ? '开启语音输出并重播' : '开启语音输出'}
         >
           {voiceOutput ? <Volume2 className="h-8 w-8" /> : <VolumeX className="h-8 w-8" />}
         </button>
