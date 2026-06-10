@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import VoyaAvatar from '@/components/common/VoyaAvatar'
 import { cn } from '@/lib/utils'
 import { useTravelStore } from '@/store/useTravelStore'
-import type { VoyaMotionState } from '@/data/voya'
+import { voyaMotionVideos, type VoyaMotionState } from '@/data/voya'
 
 type CallStatus = 'idle' | 'listening' | 'thinking' | 'speaking'
 
@@ -100,6 +100,8 @@ const scoreYouthfulChineseVoice = (voice: SpeechSynthesisVoice) => {
 const selectYouthfulChineseVoice = (voices: SpeechSynthesisVoice[]) =>
   voices.filter(isChineseVoice).sort((first, second) => scoreYouthfulChineseVoice(second) - scoreYouthfulChineseVoice(first))[0] ??
   voices.find((voice) => voice.lang.toLowerCase().startsWith('zh'))
+
+const voyaPreloadVideos = Object.entries(voyaMotionVideos) as Array<[VoyaMotionState, string]>
 
 const getSpeechRecognition = () => {
   if (typeof window === 'undefined') return null
@@ -469,6 +471,12 @@ export default function Call() {
       </div>
 
       <p className="mt-5 text-center text-[12px] tracking-[0.14em] text-stone-500">内容由 AI 生成</p>
+
+      <div aria-hidden="true" className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0">
+        {voyaPreloadVideos.map(([motion, src]) => (
+          <video key={motion} src={src} muted playsInline preload="auto" />
+        ))}
+      </div>
     </div>
   )
 }

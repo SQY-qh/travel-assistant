@@ -22,6 +22,8 @@ const videoClassName = {
   call: 'object-contain object-center',
 }
 
+const sharingIntroOffset = 0.35
+
 export default function VoyaAvatar({ state = 'listening', size = 'sm', className }: VoyaAvatarProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -29,14 +31,34 @@ export default function VoyaAvatar({ state = 'listening', size = 'sm', className
     const video = videoRef.current
     if (!video) return
 
+    const skipSharingIntro = () => {
+      if (state !== 'sharing' || video.readyState < 1 || video.currentTime >= sharingIntroOffset) return
+      try {
+        video.currentTime = sharingIntroOffset
+      } catch {
+        return
+      }
+    }
+
     const play = () => {
       video.muted = true
+      skipSharingIntro()
       void video.play().catch(() => undefined)
     }
 
+    const keepSharingVisible = () => {
+      if (state === 'sharing' && video.currentTime < 0.08) skipSharingIntro()
+    }
+
     play()
+    video.addEventListener('loadedmetadata', skipSharingIntro)
     video.addEventListener('loadeddata', play)
-    return () => video.removeEventListener('loadeddata', play)
+    video.addEventListener('timeupdate', keepSharingVisible)
+    return () => {
+      video.removeEventListener('loadedmetadata', skipSharingIntro)
+      video.removeEventListener('loadeddata', play)
+      video.removeEventListener('timeupdate', keepSharingVisible)
+    }
   }, [state])
 
   return (
