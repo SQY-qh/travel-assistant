@@ -14,12 +14,25 @@ const getConfig = () => ({
 
 export const hasGPTConfig = () => hasApiBaseUrl() || Boolean(getConfig().apiKey)
 
+const fetchWithTimeout = async (input: RequestInfo | URL, init: RequestInit, timeoutMs = 12000) => {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    })
+  } finally {
+    window.clearTimeout(timeout)
+  }
+}
+
 export async function chatCompletion(prompt: string, system: string, temperature = 0.7) {
   if (hasApiBaseUrl()) {
     const startedAt = performance.now()
     void emitTelemetry('qwen.call.start', { model: 'server-proxy', endpoint: apiUrl('/api/qwen/chat') })
     try {
-      const response = await fetch(apiUrl('/api/qwen/chat'), {
+      const response = await fetchWithTimeout(apiUrl('/api/qwen/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,7 +66,7 @@ export async function chatCompletion(prompt: string, system: string, temperature
   void emitTelemetry('qwen.call.start', { model, endpoint })
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { enrichPlanWithAmap } from '@/services/poiEnrichment'
-import { buildTravelPlan, buildTravelPlanAsync, collectConversationTurn, ensurePlanCityConsistency, getMissingFields } from '@/services/planner'
+import { buildTravelPlan, buildTravelPlanAsync, collectConversationTurn, ensurePlanCityConsistency, extractProfileFromText, getMissingFields } from '@/services/planner'
 import { emitTelemetry } from '@/services/telemetry'
 import { createEmptyProfile, type ChatMessage, type RequiredField, type TravelPlan, type TravelProfile } from '@/types/travel'
 
@@ -20,6 +20,7 @@ type TravelState = {
   lastSummary: string
   isGenerating: boolean
   submitMessage: (text: string) => Promise<SubmitMessageResult | null>
+  submitVoiceMessage: (text: string) => Promise<SubmitMessageResult | null>
   generatePlanFromProfile: () => Promise<void>
   selectRecommendation: (id: string) => Promise<void>
   toggleMonitor: (id: string) => void
@@ -36,6 +37,25 @@ const createMessage = (role: ChatMessage['role'], content: string): ChatMessage 
 const initialMessages = [
   createMessage('assistant', '你好，我是 VOYA。你可以像打电话一样直接告诉我：从哪里出发、想去哪里、玩几天、和谁去、预算多少。我会一边收集需求，一边帮你生成行程和预算。'),
 ]
+
+const voiceFieldQuestions: Record<RequiredField, string> = {
+  departureCity: '我听到了。先告诉我你的出发城市，我才能判断交通成本。',
+  destinationCity: '我听到了。你想去哪个城市或目的地？也可以说海边、历史、美食这类偏好。',
+  dateRange: '我听到了。大概什么时候出发、玩几天？',
+  travelers: '我听到了。这次是一个人、情侣、亲子，还是朋友同行？',
+  budgetLevel: '我听到了。预算想走紧凑、中等还是高预算？',
+}
+
+const summarizeProfile = (profile: TravelProfile) =>
+  [
+    profile.departureCity ? `从${profile.departureCity}出发` : '',
+    profile.destinationCity ? `去${profile.destinationCity}` : '',
+    profile.dateRange,
+    profile.travelers,
+    profile.budgetLevel,
+  ]
+    .filter(Boolean)
+    .join('，') || '暂未收集到关键信息'
 
 export const useTravelStore = create<TravelState>()(
   persist(
@@ -176,6 +196,77 @@ export const useTravelStore = create<TravelState>()(
           return {
             assistantMessages,
             spokenText: errorMessage,
+            shouldGeneratePlan: false,
+          }
+        }
+      },
+      submitVoiceMessage: async (text) => {
+        const trimmed = text.trim()
+        if (!trimmed) return null
+
+        void emitTelemetry('voice.user', { content: trimmed })
+        set((state) => ({
+          messages: [...state.messages, createMessage('user', trimmed)],
+          isGenerating: true,
+        }))
+
+        try {
+          const profile = extractProfileFromText(get().profile, trimmed, get().expectedField || undefined)
+          const missingFields = getMissingFields(profile)
+          const summary = summarizeProfile(profile)
+
+          if (missingFields.length > 0) {
+            const spokenText = voiceFieldQuestions[missingFields[0]]
+            set((state) => ({
+              ...state,
+              profile,
+              lastSummary: summary,
+              expectedField: missingFields[0],
+              isGenerating: false,
+              messages: [...state.messages, createMessage('assistant', spokenText)],
+            }))
+            return {
+              assistantMessages: [spokenText],
+              spokenText,
+              shouldGeneratePlan: false,
+            }
+          }
+
+          const rawPlan = buildTravelPlan(profile, get().activeRecommendationId || undefined)
+          void emitTelemetry('voice.plan.generated', {
+            destination: rawPlan.selectedRecommendation?.city,
+            budget: rawPlan.budget,
+          })
+          refinePlanWithLLMAndAmapInBackground(rawPlan, profile, get().activeRecommendationId || undefined)
+
+          const spokenText = `好的，我已生成 ${rawPlan.selectedRecommendation.city} 方案。你可以继续告诉我想调整的景点、节奏或预算。`
+          set((state) => ({
+            ...state,
+            profile,
+            lastSummary: summary,
+            expectedField: '',
+            isGenerating: false,
+            plan: rawPlan,
+            activeRecommendationId: rawPlan.selectedRecommendation.id,
+            messages: [...state.messages, createMessage('assistant', spokenText)],
+          }))
+
+          return {
+            assistantMessages: [spokenText],
+            spokenText,
+            shouldGeneratePlan: true,
+          }
+        } catch (error) {
+          void emitTelemetry('voice.error', { error: String(error?.message || error) })
+          const spokenText = '我刚刚理解时遇到了一点问题。你可以再说一遍，或者点“字”手动输入。'
+          set((state) => ({
+            ...state,
+            isGenerating: false,
+            messages: [...state.messages, createMessage('assistant', spokenText)],
+          }))
+          return {
+            assistantMessages: [spokenText],
+            spokenText,
             shouldGeneratePlan: false,
           }
         }

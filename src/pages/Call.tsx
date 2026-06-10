@@ -44,7 +44,7 @@ const getSpeechRecognition = () => {
 
 export default function Call() {
   const navigate = useNavigate()
-  const submitMessage = useTravelStore((state) => state.submitMessage)
+  const submitVoiceMessage = useTravelStore((state) => state.submitVoiceMessage)
   const [status, setStatus] = useState<CallStatus>('idle')
   const [transcript, setTranscript] = useState('')
   const [assistantText, setAssistantText] = useState('')
@@ -75,9 +75,16 @@ export default function Call() {
       .getVoices()
       .find((item) => item.lang.toLowerCase().includes('zh') || /chinese|中文|普通话/i.test(item.name))
     if (voice) utterance.voice = voice
-    utterance.onstart = () => setStatus('speaking')
-    utterance.onend = () => setStatus('idle')
-    utterance.onerror = () => setStatus('idle')
+    setStatus('speaking')
+    const fallbackTimer = window.setTimeout(() => setStatus('idle'), Math.min(18000, Math.max(5000, text.length * 220)))
+    utterance.onend = () => {
+      window.clearTimeout(fallbackTimer)
+      setStatus('idle')
+    }
+    utterance.onerror = () => {
+      window.clearTimeout(fallbackTimer)
+      setStatus('idle')
+    }
     window.speechSynthesis.speak(utterance)
   }, [])
 
@@ -93,7 +100,7 @@ export default function Call() {
       setTextMode(false)
       setStatus('thinking')
 
-      const result = await submitMessage(cleaned)
+      const result = await submitVoiceMessage(cleaned)
       const spokenText = result?.spokenText || '我已经收到你的需求，可以继续告诉我更多细节。'
       setAssistantText(spokenText)
       if (voiceOutput) {
@@ -102,7 +109,7 @@ export default function Call() {
         setStatus('idle')
       }
     },
-    [speakText, status, submitMessage, voiceOutput],
+    [speakText, status, submitVoiceMessage, voiceOutput],
   )
 
   const stopListening = useCallback(() => {
