@@ -165,6 +165,49 @@ export type LivePricingResult = {
   fetchedAt: string
 }
 
+export type SpotRecommendation = {
+  title: string
+  area: string
+  bestTime: string
+  duration: string
+  reservation: string
+  why: string
+  nearbyFood: string
+  fallback: string
+}
+
+export type BookingComparisonOption = {
+  id: string
+  label: string
+  departDate: string
+  returnDate: string
+  hotelNights: number
+  flightTotal: number
+  trainTotal: number
+  hotelTotal: number
+  totalByFlight: number
+  totalByTrain: number
+  recommendation: string
+  bookingTips: string[]
+}
+
+export type BookingComparison = {
+  title: string
+  baseline: string
+  cheapestOptionId: string
+  recommendedOptionId: string
+  summary: string
+  insights: string[]
+  options: BookingComparisonOption[]
+}
+
+export type ContingencyPlan = {
+  trigger: string
+  strategy: string
+  nextPlan: string
+  tradeoff: string
+}
+
 export type PolicyCard = {
   title: string
   summary: string
@@ -195,6 +238,8 @@ export type InsuranceRecommendation = {
 }
 
 export type TravelPlan = {
+  source?: 'generated' | 'local-preset'
+  localOnly?: boolean
   recommendations: DestinationRecommendation[]
   selectedRecommendation: DestinationRecommendation
   dayPlans: DayPlan[]
@@ -206,6 +251,9 @@ export type TravelPlan = {
   insuranceRecommendations: InsuranceRecommendation[]
   notes: string[]
   livePricing?: LivePricingResult | null
+  spotRecommendations?: SpotRecommendation[]
+  bookingComparison?: BookingComparison
+  contingencyPlans?: ContingencyPlan[]
 }
 
 export type ConversationTurnResult = {

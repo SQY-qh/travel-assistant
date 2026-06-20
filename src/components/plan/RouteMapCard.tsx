@@ -8,6 +8,7 @@ type RouteMapCardProps = {
   dayPlans: DayPlan[]
   center: [number, number]
   destination: string
+  offline?: boolean
 }
 
 type RoutePoint = {
@@ -17,6 +18,26 @@ type RoutePoint = {
 }
 
 type RouteSegment = [number, number][]
+
+type AMapLayer = unknown
+type AMapOverlay = unknown
+type AMapInstance = {
+  setMapStyle?: (style: string) => void
+  setLayers?: (layers: AMapLayer[]) => void
+  add: (overlays: AMapOverlay | AMapOverlay[]) => void
+  setFitView: (overlays?: unknown, immediately?: boolean, avoid?: number[], maxZoom?: number) => void
+  getZoom?: () => number
+  destroy: () => void
+}
+type AMapNamespace = {
+  TileLayer?: {
+    new (options: Record<string, unknown>): AMapLayer
+    RoadNet?: new (options: Record<string, unknown>) => AMapLayer
+  }
+  Map: new (container: HTMLDivElement, options: Record<string, unknown>) => AMapInstance
+  Marker: new (options: Record<string, unknown>) => AMapOverlay
+  Polyline: new (options: Record<string, unknown>) => AMapOverlay
+}
 
 const buildSyntheticPoints = (center: [number, number], count: number): RoutePoint[] => {
   const total = Math.max(2, count)
@@ -30,7 +51,7 @@ const buildSyntheticPoints = (center: [number, number], count: number): RoutePoi
   })
 }
 
-const buildBaseLayers = (AMap: any) => {
+const buildBaseLayers = (AMap: AMapNamespace) => {
   if (!AMap?.TileLayer) return []
 
   const layers = [new AMap.TileLayer({ zIndex: 1, opacity: 1 })]
@@ -40,7 +61,7 @@ const buildBaseLayers = (AMap: any) => {
   return layers
 }
 
-export default function RouteMapCard({ dayPlans, center, destination }: RouteMapCardProps) {
+export default function RouteMapCard({ dayPlans, center, destination, offline = false }: RouteMapCardProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
@@ -57,6 +78,7 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
     () => timelineSpots.filter((spot) => typeof spot.lng === 'number' && typeof spot.lat === 'number'),
     [timelineSpots],
   )
+  const useOfflineTimeline = offline || !hasAmapKey()
 
   useEffect(() => {
     if (!dayPlans.some((plan) => plan.day === activeDay)) {
@@ -67,7 +89,7 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
   useEffect(() => {
     let cancelled = false
 
-    if (!hasAmapKey()) {
+    if (useOfflineTimeline) {
       setResolvedCenter(center)
       setResolvedPoints([])
       setRouteSegments([])
@@ -112,12 +134,12 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
     return () => {
       cancelled = true
     }
-  }, [center, destination, explicitPoints, timelineSpots])
+  }, [center, destination, explicitPoints, timelineSpots, useOfflineTimeline])
 
   useEffect(() => {
     let cancelled = false
 
-    if (!hasAmapKey() || resolvedPoints.length < 2) {
+    if (useOfflineTimeline || resolvedPoints.length < 2) {
       setRouteSegments([])
       return
     }
@@ -147,22 +169,23 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
     return () => {
       cancelled = true
     }
-  }, [resolvedPoints])
+  }, [resolvedPoints, useOfflineTimeline])
 
   useEffect(() => {
-    if (!hasAmapKey() || !mapRef.current || resolvedPoints.length === 0) {
+    if (useOfflineTimeline || !mapRef.current || resolvedPoints.length === 0) {
       setReady(false)
       return
     }
 
-    let map: any = null
+    let map: AMapInstance | null = null
     let disposed = false
 
-    loadAmap().then((AMap) => {
-      if (!AMap || disposed || !mapRef.current) {
+    loadAmap().then((loadedAmap) => {
+      if (!loadedAmap || disposed || !mapRef.current) {
         return
       }
 
+      const AMap = loadedAmap as AMapNamespace
       const baseLayers = buildBaseLayers(AMap)
       map = new AMap.Map(mapRef.current, {
         zoom: 13,
@@ -210,9 +233,9 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
       disposed = true
       if (map) map.destroy()
     }
-  }, [resolvedCenter, resolvedPoints, routeSegments])
+  }, [resolvedCenter, resolvedPoints, routeSegments, useOfflineTimeline])
 
-  if (!hasAmapKey()) {
+  if (useOfflineTimeline) {
     return (
       <div className="rounded-[24px] bg-[linear-gradient(145deg,_#fff8ee,_#f0e2c6)] p-4 text-stone-700">
         <div className="mb-4 flex items-center gap-2 text-stone-800">
@@ -234,7 +257,9 @@ export default function RouteMapCard({ dayPlans, center, destination }: RouteMap
           ))}
         </div>
         <p className="mt-4 text-[11px] leading-5 text-stone-500">
-          当前未检测到高德地图 API Key，因此以路线时间轴模式展示。将密钥填入 `secrets/local.keys.env` 后刷新页面，即可启用真实地图。
+          {offline
+            ? '当前为本地预存方案，路线以离线时间轴展示，不加载高德地图或远程路线接口。'
+            : '当前未检测到高德地图 API Key，因此以路线时间轴模式展示。将密钥填入 `secrets/local.keys.env` 后刷新页面，即可启用真实地图。'}
         </p>
       </div>
     )

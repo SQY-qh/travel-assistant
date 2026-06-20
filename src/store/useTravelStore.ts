@@ -161,7 +161,9 @@ export const useTravelStore = create<TravelState>()(
             nextState.plan = rawPlan
             nextState.activeRecommendationId = rawPlan.selectedRecommendation.id
             nextState.expectedField = ''
-            refinePlanWithLLMAndAmapInBackground(rawPlan, turn.profile, get().activeRecommendationId || undefined)
+            if (!rawPlan.localOnly) {
+              refinePlanWithLLMAndAmapInBackground(rawPlan, turn.profile, get().activeRecommendationId || undefined)
+            }
           }
 
           const finalMessage = `已生成 ${nextState.plan?.selectedRecommendation.city || '目的地'} 方案，可切换到底部“行程”和“准备”查看。`
@@ -237,7 +239,9 @@ export const useTravelStore = create<TravelState>()(
             destination: rawPlan.selectedRecommendation?.city,
             budget: rawPlan.budget,
           })
-          refinePlanWithLLMAndAmapInBackground(rawPlan, profile, get().activeRecommendationId || undefined)
+          if (!rawPlan.localOnly) {
+            refinePlanWithLLMAndAmapInBackground(rawPlan, profile, get().activeRecommendationId || undefined)
+          }
 
           const spokenText = `好的，我已生成 ${rawPlan.selectedRecommendation.city} 方案。你可以继续告诉我想调整的景点、节奏或预算。`
           set((state) => ({
@@ -291,7 +295,9 @@ export const useTravelStore = create<TravelState>()(
             destination: rawPlan.selectedRecommendation?.city,
             budget: rawPlan.budget,
           })
-          refinePlanWithLLMAndAmapInBackground(rawPlan, profile, get().activeRecommendationId || undefined)
+          if (!rawPlan.localOnly) {
+            refinePlanWithLLMAndAmapInBackground(rawPlan, profile, get().activeRecommendationId || undefined)
+          }
           set((state) => ({
             ...state,
             isGenerating: false,
@@ -322,7 +328,9 @@ export const useTravelStore = create<TravelState>()(
           const rawPlan = buildTravelPlan(profile, id)
           void emitTelemetry('plan.switched', { destination: rawPlan.selectedRecommendation?.city, id })
           set({ plan: rawPlan, activeRecommendationId: rawPlan.selectedRecommendation.id, expectedField: '', isGenerating: false })
-          refinePlanWithLLMAndAmapInBackground(rawPlan, profile, id)
+          if (!rawPlan.localOnly) {
+            refinePlanWithLLMAndAmapInBackground(rawPlan, profile, id)
+          }
         } catch (error) {
           void emitTelemetry('plan.error', { error: String(error?.message || error) })
           set({ isGenerating: false })

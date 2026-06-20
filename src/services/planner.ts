@@ -1,5 +1,6 @@
 import { destinationTemplates } from '@/data/demo'
 import { destinationCoverImage, hasOutfitCoverImage } from '@/data/destinationImages'
+import { buildShenzhenShanghaiLocalPlan, isShenzhenShanghaiPresetProfile } from '@/data/localShanghaiPlan'
 import { selectOutfitsForTrip } from '@/data/outfits'
 import { chatCompletion, hasGPTConfig, maybeRefineReply } from '@/services/providers/gptProvider'
 import { alignPlanDayCount, generatePlanWithLLM } from '@/services/llmPlan'
@@ -102,6 +103,11 @@ export function extractProfileFromText(current: TravelProfile, text: string, exp
 
   const explicitDeparture = /从[^\s]{1,8}出发/.test(source) || /出发地(?:是|为)?/.test(source)
   const explicitDestination = /目的地(?:是|为)?/.test(source) || /去[^\s，。！？；]{1,14}/.test(source)
+  const routeMatch = source.match(/([一-龥]{2,8})到([一-龥]{2,8})/)
+  if (routeMatch) {
+    next.departureCity = routeMatch[1].replace(/出发|旅行|旅游|出游/g, '').trim()
+    next.destinationCity = routeMatch[2].replace(/出发|旅行|旅游|出游|玩.*/g, '').trim()
+  }
 
   const departureMatches = [source.match(/从([^\s]{1,8})出发/), source.match(/出发地(?:是|为)?([^\s]{1,8})/)]
   const departure = departureMatches.find(Boolean)?.[1]
@@ -325,6 +331,16 @@ export async function collectConversationTurn(current: TravelProfile, text: stri
           const fallback = shouldGeneratePlan
             ? `我已经收齐了关键信息：${summary}。现在可以直接为你生成候选目的地、路线、预算、价格监控和出行准备清单。你也可以继续补充偏好，比如“想住设计酒店”或“想把购物安排多一点”。`
             : `已记录：${summary}。${fieldQuestions[missingFields[0]]}`
+
+          if (shouldGeneratePlan && isShenzhenShanghaiPresetProfile(profile)) {
+            return {
+              profile,
+              assistantMessage: '已命中本地预存的深圳到上海 7 月 1 日情侣 5 天游方案。我会直接展示细化景点、前后一天机酒火车比价、最低组合推荐和临时改行程策略，不调用远程规划接口。',
+              missingFields,
+              shouldGeneratePlan,
+              summary,
+            }
+          }
 
           const assistantMessage = await maybeRefineReply({
             fallback,
@@ -722,6 +738,10 @@ const buildRequestedCityPlan = (
 }
 
         export function buildTravelPlan(profile: TravelProfile, selectedId?: string): TravelPlan {
+          if (!selectedId && isShenzhenShanghaiPresetProfile(profile)) {
+            return buildShenzhenShanghaiLocalPlan(profile)
+          }
+
           const requestedCity = normalizeCityName(profile.destinationCity)
           const ranked = destinationTemplates
             .map((template) => {

@@ -132,6 +132,25 @@ describe('planner service', () => {
     expect(plan.selectedRecommendation.coverImage).not.toContain('outfits')
   })
 
+  it('深圳到上海 7 月 1 日情侣 5 天游应命中本地预存方案', () => {
+    const profile = extractProfileFromText(
+      createEmptyProfile(),
+      '深圳到上海/7月1号出发玩5天/情侣出游/预算1万',
+    )
+    const plan = buildTravelPlan(profile)
+
+    expect(profile.departureCity).toBe('深圳')
+    expect(profile.destinationCity).toBe('上海')
+    expect(plan.source).toBe('local-preset')
+    expect(plan.localOnly).toBe(true)
+    expect(plan.selectedRecommendation.city).toBe('上海')
+    expect(plan.dayPlans).toHaveLength(5)
+    expect(plan.bookingComparison?.options).toHaveLength(3)
+    expect(plan.bookingComparison?.recommendedOptionId).toBe('baseline')
+    expect(plan.spotRecommendations?.length).toBeGreaterThanOrEqual(4)
+    expect(plan.contingencyPlans?.length).toBeGreaterThanOrEqual(4)
+  })
+
   it('旧缓存中的穿搭封面应按当前城市修正为目的地封面', () => {
     const plan = buildTravelPlan({
       ...createEmptyProfile(),

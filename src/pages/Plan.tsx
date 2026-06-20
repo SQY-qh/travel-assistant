@@ -71,8 +71,34 @@ export default function Plan() {
           dayPlans={plan.dayPlans}
           center={plan.selectedRecommendation.mapCenter}
           destination={plan.selectedRecommendation.planningCity || plan.selectedRecommendation.city}
+          offline={plan.localOnly}
         />
       </SectionCard>
+
+      {plan.spotRecommendations?.length ? (
+        <SectionCard title="细颗粒度景点推荐" eyebrow="Spot Playbook">
+          <div className="space-y-3">
+            {plan.spotRecommendations.map((spot) => (
+              <article key={spot.title} className="rounded-[24px] border border-stone-200 bg-white px-4 py-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{spot.area}</p>
+                    <h2 className="mt-1 text-sm font-semibold text-stone-900">{spot.title}</h2>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-medium text-amber-800">{spot.duration}</span>
+                </div>
+                <p className="mt-3 text-xs leading-6 text-stone-600">{spot.why}</p>
+                <div className="mt-3 grid grid-cols-1 gap-2 text-[11px] leading-5 text-stone-500">
+                  <p className="rounded-2xl bg-stone-50 px-3 py-2">最佳时间：{spot.bestTime}</p>
+                  <p className="rounded-2xl bg-stone-50 px-3 py-2">预约/排队：{spot.reservation}</p>
+                  <p className="rounded-2xl bg-stone-50 px-3 py-2">附近吃喝：{spot.nearbyFood}</p>
+                  <p className="rounded-2xl bg-stone-50 px-3 py-2">替代方案：{spot.fallback}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
 
       <SectionCard title="预算制定与分配" eyebrow="Budget Strategy">
         <BudgetPieChart budget={plan.budget} />
@@ -117,6 +143,22 @@ export default function Plan() {
           ))}
         </div>
       </SectionCard>
+
+      {plan.contingencyPlans?.length ? (
+        <SectionCard title="临时修改策略" eyebrow="Change Handling">
+          <div className="space-y-3">
+            {plan.contingencyPlans.map((item) => (
+              <article key={item.trigger} className="rounded-[24px] bg-stone-900 px-4 py-4 text-white shadow-lg">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">触发情况</p>
+                <h2 className="mt-1 text-sm font-semibold">{item.trigger}</h2>
+                <p className="mt-3 text-xs leading-6 text-white/75">调整策略：{item.strategy}</p>
+                <p className="mt-2 text-xs leading-6 text-white/75">后续规划：{item.nextPlan}</p>
+                <p className="mt-2 rounded-2xl bg-white/10 px-3 py-2 text-[11px] leading-5 text-white/70">取舍：{item.tradeoff}</p>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
 
     </div>
   )

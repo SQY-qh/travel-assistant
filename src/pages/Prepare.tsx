@@ -80,6 +80,7 @@ export default function Prepare() {
   const [pricingStatus, setPricingStatus] = useState<PricingStatus>('idle')
   const [pricingError, setPricingError] = useState('')
   const [livePricing, setLivePricing] = useState<LivePricingResult | null>(null)
+  const localBookingComparison = plan?.bookingComparison
 
   const queryResolution = useMemo(
     () => (plan ? resolveLivePricingQuery(profile, plan) : null),
@@ -92,6 +93,13 @@ export default function Prepare() {
   const alignedLivePricing = livePricing && activeQueryKey && livePricingKey === activeQueryKey ? livePricing : null
 
   const refreshLivePricing = async () => {
+    if (localBookingComparison) {
+      setPricingStatus('ready')
+      setPricingError('')
+      setLivePricing(null)
+      return
+    }
+
     if (!queryResolution?.ok) {
       setPricingStatus('error')
       setPricingError(queryError || '暂时无法生成真实报价查询条件。')
@@ -118,6 +126,12 @@ export default function Prepare() {
 
   useEffect(() => {
     if (!plan) return
+    if (localBookingComparison) {
+      setPricingStatus('ready')
+      setPricingError('')
+      setLivePricing(null)
+      return
+    }
     let cancelled = false
 
     const run = async () => {
@@ -154,7 +168,7 @@ export default function Prepare() {
     return () => {
       cancelled = true
     }
-  }, [plan, queryError, queryResolution])
+  }, [localBookingComparison, plan, queryError, queryResolution])
 
   if (!plan) {
     return (
@@ -166,155 +180,208 @@ export default function Prepare() {
 
   return (
     <div className="space-y-4 pb-4">
-      <SectionCard title="航班报价" eyebrow="Flights">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between gap-3 rounded-2xl bg-stone-50 p-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-sm font-semibold text-stone-900">
-                <Plane className="h-4 w-4 text-amber-700" />
-                往返航班
-              </div>
-              <p className="mt-2 text-xs leading-6 text-stone-500">
-                {queryResolution?.ok ? queryResolution.query.querySummary : pricingError || '等待生成查询条件'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void refreshLivePricing()}
-              className="inline-flex items-center gap-2 rounded-full bg-stone-900 px-3 py-2 text-[11px] text-white"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${pricingStatus === 'loading' ? 'animate-spin' : ''}`} />
-              刷新报价
-            </button>
-          </div>
-
-          {pricingStatus === 'loading' ? (
-            <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">正在刷新航班报价...</article>
-          ) : null}
-
-          {pricingStatus === 'error' ? (
-            <article className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-700">
-              <div className="flex items-center gap-2 font-semibold">
-                <TriangleAlert className="h-4 w-4" />
-                暂时未拿到航班报价
+      {localBookingComparison ? (
+        <SectionCard title="本地预存预订比价" eyebrow="Booking Comparison">
+          <div className="space-y-3">
+            <article className="rounded-2xl bg-stone-900 px-4 py-4 text-white shadow-lg">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">{localBookingComparison.title}</p>
+              <h2 className="mt-2 text-sm font-semibold">推荐：{localBookingComparison.options.find((item) => item.id === localBookingComparison.recommendedOptionId)?.label}</h2>
+              <p className="mt-3 text-xs leading-6 text-white/75">{localBookingComparison.summary}</p>
+              <p className="mt-2 text-[11px] leading-5 text-white/55">{localBookingComparison.baseline}</p>
+              <div className="mt-3 space-y-2">
+                {localBookingComparison.insights.map((insight) => (
+                  <p key={insight} className="rounded-2xl bg-white/10 px-3 py-2 text-[11px] leading-5 text-white/70">{insight}</p>
+                ))}
               </div>
             </article>
-          ) : null}
 
-          {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.flights.length === 0 ? (
-            <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的航班结果。</article>
-          ) : null}
-
-          <div className="grid grid-cols-1 gap-3">
-          {alignedLivePricing?.flights.map((flight) => {
-            const outbound = flight.itineraries[0] ?? []
-            const inbound = flight.itineraries[1] ?? []
-            const firstOutbound = outbound[0]
-            const lastOutbound = outbound[outbound.length - 1]
-            return (
-              <article key={flight.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-stone-900">
-                      {(flight.validatingAirlineCodes[0] || flight.airlineCodes[0] || '航司待确认')} · {describeStops(outbound)}
+            {localBookingComparison.options.map((option) => {
+              const isCheapest = option.id === localBookingComparison.cheapestOptionId
+              const isRecommended = option.id === localBookingComparison.recommendedOptionId
+              return (
+                <article key={option.id} className={`rounded-[24px] border px-4 py-4 shadow-sm ${isRecommended ? 'border-amber-300 bg-amber-50' : 'border-stone-200 bg-white'}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-stone-900">{option.label}</h3>
+                      <p className="mt-1 text-[11px] text-stone-500">{option.departDate} 出发 · {option.returnDate} 返回 · {option.hotelNights} 晚</p>
                     </div>
-                    <p className="mt-2 text-xs text-stone-500">
-                      去程 {firstOutbound?.departureIata || '--'} {formatDateTime(firstOutbound?.departureAt || '')}{' -> '}{lastOutbound?.arrivalIata || '--'} {formatDateTime(lastOutbound?.arrivalAt || '')}
-                    </p>
-                    {inbound.length > 0 ? (
-                      <p className="mt-1 text-xs text-stone-500">
-                        返程 {inbound[0]?.departureIata || '--'} {formatDateTime(inbound[0]?.departureAt || '')}{' -> '}{inbound[inbound.length - 1]?.arrivalIata || '--'} {formatDateTime(inbound[inbound.length - 1]?.arrivalAt || '')}
-                      </p>
-                    ) : null}
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      {isRecommended ? <span className="rounded-full bg-stone-900 px-2 py-1 text-[10px] text-white">综合推荐</span> : null}
+                      {isCheapest ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] text-emerald-700">最低价</span> : null}
+                    </div>
                   </div>
-                  <div className="shrink-0 rounded-2xl bg-amber-50 px-3 py-2 text-right text-amber-800">
-                    <p className="text-[10px]">总价</p>
-                    <p className="text-base font-semibold">{formatMoney(flight.totalPrice, flight.currency)}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-stone-600">
+                    <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Plane className="mb-1 h-3.5 w-3.5 text-amber-700" />机票两人：{formatMoney(option.flightTotal)}</p>
+                    <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Ticket className="mb-1 h-3.5 w-3.5 text-amber-700" />高铁两人：{formatMoney(option.trainTotal)}</p>
+                    <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Hotel className="mb-1 h-3.5 w-3.5 text-amber-700" />酒店总价：{formatMoney(option.hotelTotal)}</p>
+                    <p className="rounded-2xl bg-white px-3 py-2 font-semibold text-stone-900 shadow-sm">机酒合计：{formatMoney(option.totalByFlight)}</p>
                   </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {outbound.map((segment) => (
-                    <span key={`${flight.id}-${segment.flightNumber}-${segment.departureAt}`} className="rounded-full bg-stone-100 px-3 py-2 text-[11px] text-stone-600">
-                      {segment.flightNumber} · {segment.departureIata}{' -> '}{segment.arrivalIata} · {formatDuration(segment.duration)}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            )
-          })}
+                  <p className="mt-3 text-xs leading-6 text-stone-600">{option.recommendation}</p>
+                  <div className="mt-3 space-y-2">
+                    {option.bookingTips.map((tip) => (
+                      <p key={tip} className="rounded-2xl bg-stone-50 px-3 py-2 text-[11px] leading-5 text-stone-500">{tip}</p>
+                    ))}
+                  </div>
+                </article>
+              )
+            })}
           </div>
-        </div>
-      </SectionCard>
+        </SectionCard>
+      ) : null}
 
-      <SectionCard title="酒店报价" eyebrow="Hotels">
-        <div className="space-y-3">
-          {pricingStatus === 'loading' ? (
-            <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">正在刷新酒店报价...</article>
-          ) : null}
-
-          {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.hotels.length === 0 ? (
-            <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的酒店报价。</article>
-          ) : null}
-
-          <div className="grid grid-cols-1 gap-3">
-          {alignedLivePricing?.hotels.map((hotel) => (
-            <article key={hotel.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
+      {!localBookingComparison ? (
+        <>
+          <SectionCard title="航班报价" eyebrow="Flights">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-3 rounded-2xl bg-stone-50 p-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-sm font-semibold text-stone-900">
-                    <Hotel className="h-4 w-4 text-amber-700" />
-                    {hotel.hotelName}
-                  </div>
-                  <p className="mt-2 text-xs leading-6 text-stone-500">{hotel.address || `${hotel.cityCode} 市区`}</p>
-                  <p className="mt-1 text-xs leading-6 text-stone-500">房型：{cleanHotelRoom(hotel.roomType)}</p>
-                </div>
-                <div className="shrink-0 rounded-2xl bg-amber-50 px-3 py-2 text-right text-amber-800">
-                  <p className="text-[10px]">报价</p>
-                  <p className="text-base font-semibold">{formatMoney(hotel.totalPrice, hotel.currency)}</p>
-                </div>
-              </div>
-            </article>
-          ))}
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="火车票报价" eyebrow="Trains">
-        <div className="space-y-3">
-          {pricingStatus === 'loading' ? (
-            <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">正在刷新火车票报价...</article>
-          ) : null}
-
-          {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.trains.length === 0 ? (
-            <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的火车票结果。</article>
-          ) : null}
-
-          <div className="grid grid-cols-1 gap-3">
-          {alignedLivePricing?.trains.map((train) => (
-            <article key={train.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-stone-900">
-                    <Ticket className="h-4 w-4 text-amber-700" />
-                    {train.trainNumber} · {train.seatType}
+                    <Plane className="h-4 w-4 text-amber-700" />
+                    往返航班
                   </div>
                   <p className="mt-2 text-xs leading-6 text-stone-500">
-                    {train.departureStation} {formatDateTime(train.departureAt)} {'->'} {train.arrivalStation} {formatDateTime(train.arrivalAt)}
-                  </p>
-                  <p className="mt-1 text-xs leading-6 text-stone-500">
-                    {train.duration}
+                    {queryResolution?.ok ? queryResolution.query.querySummary : pricingError || '等待生成查询条件'}
                   </p>
                 </div>
-                <div className="shrink-0 rounded-2xl bg-amber-50 px-3 py-2 text-right text-amber-800">
-                  <p className="text-[10px]">票价</p>
-                  <p className="text-base font-semibold">{formatMoney(train.totalPrice, train.currency)}</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => void refreshLivePricing()}
+                  className="inline-flex items-center gap-2 rounded-full bg-stone-900 px-3 py-2 text-[11px] text-white"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${pricingStatus === 'loading' ? 'animate-spin' : ''}`} />
+                  刷新报价
+                </button>
               </div>
-            </article>
-          ))}
-          </div>
-        </div>
-      </SectionCard>
+
+              {pricingStatus === 'loading' ? (
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">正在刷新航班报价...</article>
+              ) : null}
+
+              {pricingStatus === 'error' ? (
+                <article className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-700">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <TriangleAlert className="h-4 w-4" />
+                    暂时未拿到航班报价
+                  </div>
+                </article>
+              ) : null}
+
+              {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.flights.length === 0 ? (
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的航班结果。</article>
+              ) : null}
+
+              <div className="grid grid-cols-1 gap-3">
+              {alignedLivePricing?.flights.map((flight) => {
+                const outbound = flight.itineraries[0] ?? []
+                const inbound = flight.itineraries[1] ?? []
+                const firstOutbound = outbound[0]
+                const lastOutbound = outbound[outbound.length - 1]
+                return (
+                  <article key={flight.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-stone-900">
+                          {(flight.validatingAirlineCodes[0] || flight.airlineCodes[0] || '航司待确认')} · {describeStops(outbound)}
+                        </div>
+                        <p className="mt-2 text-xs text-stone-500">
+                          去程 {firstOutbound?.departureIata || '--'} {formatDateTime(firstOutbound?.departureAt || '')}{' -> '}{lastOutbound?.arrivalIata || '--'} {formatDateTime(lastOutbound?.arrivalAt || '')}
+                        </p>
+                        {inbound.length > 0 ? (
+                          <p className="mt-1 text-xs text-stone-500">
+                            返程 {inbound[0]?.departureIata || '--'} {formatDateTime(inbound[0]?.departureAt || '')}{' -> '}{inbound[inbound.length - 1]?.arrivalIata || '--'} {formatDateTime(inbound[inbound.length - 1]?.arrivalAt || '')}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="shrink-0 rounded-2xl bg-amber-50 px-3 py-2 text-right text-amber-800">
+                        <p className="text-[10px]">总价</p>
+                        <p className="text-base font-semibold">{formatMoney(flight.totalPrice, flight.currency)}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {outbound.map((segment) => (
+                        <span key={`${flight.id}-${segment.flightNumber}-${segment.departureAt}`} className="rounded-full bg-stone-100 px-3 py-2 text-[11px] text-stone-600">
+                          {segment.flightNumber} · {segment.departureIata}{' -> '}{segment.arrivalIata} · {formatDuration(segment.duration)}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                )
+              })}
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="酒店报价" eyebrow="Hotels">
+            <div className="space-y-3">
+              {pricingStatus === 'loading' ? (
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">正在刷新酒店报价...</article>
+              ) : null}
+
+              {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.hotels.length === 0 ? (
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的酒店报价。</article>
+              ) : null}
+
+              <div className="grid grid-cols-1 gap-3">
+              {alignedLivePricing?.hotels.map((hotel) => (
+                <article key={hotel.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-stone-900">
+                        <Hotel className="h-4 w-4 text-amber-700" />
+                        {hotel.hotelName}
+                      </div>
+                      <p className="mt-2 text-xs leading-6 text-stone-500">{hotel.address || `${hotel.cityCode} 市区`}</p>
+                      <p className="mt-1 text-xs leading-6 text-stone-500">房型：{cleanHotelRoom(hotel.roomType)}</p>
+                    </div>
+                    <div className="shrink-0 rounded-2xl bg-amber-50 px-3 py-2 text-right text-amber-800">
+                      <p className="text-[10px]">报价</p>
+                      <p className="text-base font-semibold">{formatMoney(hotel.totalPrice, hotel.currency)}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="火车票报价" eyebrow="Trains">
+            <div className="space-y-3">
+              {pricingStatus === 'loading' ? (
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">正在刷新火车票报价...</article>
+              ) : null}
+
+              {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.trains.length === 0 ? (
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的火车票结果。</article>
+              ) : null}
+
+              <div className="grid grid-cols-1 gap-3">
+              {alignedLivePricing?.trains.map((train) => (
+                <article key={train.id} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-stone-900">
+                        <Ticket className="h-4 w-4 text-amber-700" />
+                        {train.trainNumber} · {train.seatType}
+                      </div>
+                      <p className="mt-2 text-xs leading-6 text-stone-500">
+                        {train.departureStation} {formatDateTime(train.departureAt)} {'->'} {train.arrivalStation} {formatDateTime(train.arrivalAt)}
+                      </p>
+                      <p className="mt-1 text-xs leading-6 text-stone-500">
+                        {train.duration}
+                      </p>
+                    </div>
+                    <div className="shrink-0 rounded-2xl bg-amber-50 px-3 py-2 text-right text-amber-800">
+                      <p className="text-[10px]">票价</p>
+                      <p className="text-base font-semibold">{formatMoney(train.totalPrice, train.currency)}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+              </div>
+            </div>
+          </SectionCard>
+        </>
+      ) : null}
 
       <SectionCard title="签证 / 政策 / 注意事项" eyebrow="Policy Notes">
         <div className="space-y-3">
