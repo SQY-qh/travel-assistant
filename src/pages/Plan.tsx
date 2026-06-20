@@ -79,20 +79,25 @@ export default function Plan() {
         <SectionCard title="细颗粒度景点推荐" eyebrow="Spot Playbook">
           <div className="space-y-3">
             {plan.spotRecommendations.map((spot) => (
-              <article key={spot.title} className="rounded-[24px] border border-stone-200 bg-white px-4 py-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{spot.area}</p>
-                    <h2 className="mt-1 text-sm font-semibold text-stone-900">{spot.title}</h2>
+              <article key={spot.title} className="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-sm">
+                {spot.imageUrl ? (
+                  <img src={spot.imageUrl} alt={spot.title} className="h-36 w-full object-cover" loading="lazy" />
+                ) : null}
+                <div className="px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{spot.area}</p>
+                      <h2 className="mt-1 text-sm font-semibold text-stone-900">{spot.title}</h2>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-medium text-amber-800">{spot.duration}</span>
                   </div>
-                  <span className="shrink-0 rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-medium text-amber-800">{spot.duration}</span>
-                </div>
-                <p className="mt-3 text-xs leading-6 text-stone-600">{spot.why}</p>
-                <div className="mt-3 grid grid-cols-1 gap-2 text-[11px] leading-5 text-stone-500">
-                  <p className="rounded-2xl bg-stone-50 px-3 py-2">最佳时间：{spot.bestTime}</p>
-                  <p className="rounded-2xl bg-stone-50 px-3 py-2">预约/排队：{spot.reservation}</p>
-                  <p className="rounded-2xl bg-stone-50 px-3 py-2">附近吃喝：{spot.nearbyFood}</p>
-                  <p className="rounded-2xl bg-stone-50 px-3 py-2">替代方案：{spot.fallback}</p>
+                  <p className="mt-3 text-xs leading-6 text-stone-600">{spot.why}</p>
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-[11px] leading-5 text-stone-500">
+                    <p className="rounded-2xl bg-stone-50 px-3 py-2">最佳时间：{spot.bestTime}</p>
+                    <p className="rounded-2xl bg-stone-50 px-3 py-2">预约/排队：{spot.reservation}</p>
+                    <p className="rounded-2xl bg-stone-50 px-3 py-2">附近吃喝：{spot.nearbyFood}</p>
+                    <p className="rounded-2xl bg-stone-50 px-3 py-2">替代方案：{spot.fallback}</p>
+                  </div>
                 </div>
               </article>
             ))}
@@ -126,6 +131,9 @@ export default function Plan() {
                       <span className="mt-2 h-full w-px bg-stone-200" />
                     </div>
                     <div className="flex-1 rounded-[20px] bg-white px-4 py-3 shadow-sm">
+                      {spot.imageUrl ? (
+                        <img src={spot.imageUrl} alt={spot.name} className="mb-3 h-28 w-full rounded-2xl object-cover" loading="lazy" />
+                      ) : null}
                       <div className="flex items-center gap-2 text-stone-900">
                         {spot.type === '景点' ? <Landmark className="h-4 w-4 text-amber-700" /> : null}
                         {spot.type === '交通' ? <Compass className="h-4 w-4 text-amber-700" /> : null}

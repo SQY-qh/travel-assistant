@@ -132,7 +132,7 @@ describe('planner service', () => {
     expect(plan.selectedRecommendation.coverImage).not.toContain('outfits')
   })
 
-  it('深圳到上海 7 月 1 日情侣 5 天游应命中本地预存方案', () => {
+  it('深圳到上海 7 月 1 日情侣 5 天游应使用专属细化方案', () => {
     const profile = extractProfileFromText(
       createEmptyProfile(),
       '深圳到上海/7月1号出发玩5天/情侣出游/预算1万',
@@ -149,6 +149,21 @@ describe('planner service', () => {
     expect(plan.bookingComparison?.recommendedOptionId).toBe('baseline')
     expect(plan.spotRecommendations?.length).toBeGreaterThanOrEqual(4)
     expect(plan.contingencyPlans?.length).toBeGreaterThanOrEqual(4)
+    expect(plan.spotRecommendations?.every((spot) => Boolean(spot.imageUrl))).toBe(true)
+    expect(plan.bookingComparison?.hotelOptions?.every((hotel) => Boolean(hotel.imageUrl))).toBe(true)
+    expect(plan.outfitSuggestions.some((outfit) => outfit.scenario === '海边度假')).toBe(false)
+
+    const visibleText = [
+      plan.selectedRecommendation.matchReason,
+      ...plan.policyCards.flatMap((card) => [card.title, card.summary]),
+      ...plan.notes,
+      plan.bookingComparison?.title,
+      plan.bookingComparison?.baseline,
+      plan.bookingComparison?.summary,
+      ...(plan.bookingComparison?.insights ?? []),
+    ].join(' ')
+
+    expect(visibleText).not.toMatch(/本地预存|离线时间轴|不加载|不调用|不依赖|远程模型|远程路线|API Key|secrets/)
   })
 
   it('旧缓存中的穿搭封面应按当前城市修正为目的地封面', () => {

@@ -181,7 +181,7 @@ export default function Prepare() {
   return (
     <div className="space-y-4 pb-4">
       {localBookingComparison ? (
-        <SectionCard title="本地预存预订比价" eyebrow="Booking Comparison">
+        <SectionCard title="前后一天预订比价" eyebrow="Booking Comparison">
           <div className="space-y-3">
             <article className="rounded-2xl bg-stone-900 px-4 py-4 text-white shadow-lg">
               <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">{localBookingComparison.title}</p>
@@ -225,6 +225,26 @@ export default function Prepare() {
                 </article>
               )
             })}
+
+            {localBookingComparison.hotelOptions?.length ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1 text-sm font-semibold text-stone-900">
+                  <Hotel className="h-4 w-4 text-amber-700" />
+                  酒店参考
+                </div>
+                {localBookingComparison.hotelOptions.map((hotel) => (
+                  <article key={hotel.name} className="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-sm">
+                    <img src={hotel.imageUrl} alt={hotel.name} className="h-32 w-full object-cover" loading="lazy" />
+                    <div className="px-4 py-4">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{hotel.area}</p>
+                      <h3 className="mt-1 text-sm font-semibold text-stone-900">{hotel.name}</h3>
+                      <p className="mt-2 text-xs leading-6 text-stone-600">{hotel.reason}</p>
+                      <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-medium leading-5 text-amber-800">{hotel.priceHint}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </div>
         </SectionCard>
       ) : null}

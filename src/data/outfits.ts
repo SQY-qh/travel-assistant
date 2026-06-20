@@ -119,7 +119,7 @@ const scoreOutfit = (item: OutfitCatalogItem, profile: TravelProfile, city: stri
     profile.notes,
   ].join(' ')
   let score = 0
-  if (/海|岛|三亚|厦门|青岛|新加坡|普吉|沙滩|海边/.test(text) && item.scenario === '海边度假') score += 8
+  if (/海边|海岛|海滩|岛屿|三亚|厦门|青岛|新加坡|普吉|沙滩/.test(text) && item.scenario === '海边度假') score += 8
   if (/冬|冷|雪|哈尔滨|北京|首尔|伦敦|巴黎|12月|1月|2月/.test(text) && item.scenario === '寒冷城市') score += 8
   if (/雨|梅雨|博物馆|省博|展|室内/.test(text) && item.scenario === '雨天室内') score += 6
   if (/夜|晚餐|约会|情侣|江滩|酒吧|夜景/.test(text) && item.scenario === '晚间餐厅') score += 5

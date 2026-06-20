@@ -49,6 +49,7 @@ export type DaySpot = {
   address?: string
   type: '景点' | '餐饮' | '交通' | '酒店'
   note: string
+  imageUrl?: string
   lat?: number
   lng?: number
   cost?: number
@@ -174,6 +175,17 @@ export type SpotRecommendation = {
   why: string
   nearbyFood: string
   fallback: string
+  imageUrl?: string
+  imageCredit?: string
+}
+
+export type HotelVisualOption = {
+  name: string
+  area: string
+  priceHint: string
+  reason: string
+  imageUrl: string
+  imageCredit?: string
 }
 
 export type BookingComparisonOption = {
@@ -199,6 +211,7 @@ export type BookingComparison = {
   summary: string
   insights: string[]
   options: BookingComparisonOption[]
+  hotelOptions?: HotelVisualOption[]
 }
 
 export type ContingencyPlan = {

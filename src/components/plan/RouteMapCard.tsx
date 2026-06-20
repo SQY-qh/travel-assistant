@@ -258,8 +258,8 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
         </div>
         <p className="mt-4 text-[11px] leading-5 text-stone-500">
           {offline
-            ? '当前为本地预存方案，路线以离线时间轴展示，不加载高德地图或远程路线接口。'
-            : '当前未检测到高德地图 API Key，因此以路线时间轴模式展示。将密钥填入 `secrets/local.keys.env` 后刷新页面，即可启用真实地图。'}
+            ? '已按当天动线展示关键节点，建议根据天气、人流和体力微调停留时长。'
+            : '已按路线节点展示当天动线，关键位置可作为导航与转场参考。'}
         </p>
       </div>
     )
