@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BriefcaseBusiness, FileText, Hotel, Plane, RefreshCw, ShieldPlus, Shirt, Ticket, TriangleAlert } from 'lucide-react'
+import { BriefcaseBusiness, ChevronLeft, ChevronRight, FileText, Hotel, Plane, RefreshCw, ShieldPlus, Shirt, Ticket, TriangleAlert } from 'lucide-react'
 import SectionCard from '@/components/common/SectionCard'
 import { fetchLivePricing, resolveLivePricingQuery } from '@/services/livePricing'
 import { useTravelStore } from '@/store/useTravelStore'
+import { cn } from '@/lib/utils'
 import type { LivePricingResult } from '@/types/travel'
 
 type PricingStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -80,7 +81,11 @@ export default function Prepare() {
   const [pricingStatus, setPricingStatus] = useState<PricingStatus>('idle')
   const [pricingError, setPricingError] = useState('')
   const [livePricing, setLivePricing] = useState<LivePricingResult | null>(null)
+  const [activeBookingIndex, setActiveBookingIndex] = useState(0)
+  const [activeHotelIndex, setActiveHotelIndex] = useState(0)
   const localBookingComparison = plan?.bookingComparison
+  const bookingOptions = localBookingComparison?.options ?? []
+  const hotelOptions = localBookingComparison?.hotelOptions ?? []
 
   const queryResolution = useMemo(
     () => (plan ? resolveLivePricingQuery(profile, plan) : null),
@@ -91,6 +96,28 @@ export default function Prepare() {
   const activeQueryKey = queryResolution?.ok ? buildQueryKey(queryResolution.query) : ''
   const livePricingKey = livePricing ? buildQueryKey(livePricing.query) : ''
   const alignedLivePricing = livePricing && activeQueryKey && livePricingKey === activeQueryKey ? livePricing : null
+
+  useEffect(() => {
+    if (bookingOptions.length > 0 && activeBookingIndex >= bookingOptions.length) {
+      setActiveBookingIndex(0)
+    }
+  }, [activeBookingIndex, bookingOptions.length])
+
+  useEffect(() => {
+    if (hotelOptions.length > 0 && activeHotelIndex >= hotelOptions.length) {
+      setActiveHotelIndex(0)
+    }
+  }, [activeHotelIndex, hotelOptions.length])
+
+  const goToBooking = (direction: -1 | 1) => {
+    if (!bookingOptions.length) return
+    setActiveBookingIndex((current) => (current + direction + bookingOptions.length) % bookingOptions.length)
+  }
+
+  const goToHotel = (direction: -1 | 1) => {
+    if (!hotelOptions.length) return
+    setActiveHotelIndex((current) => (current + direction + hotelOptions.length) % hotelOptions.length)
+  }
 
   const refreshLivePricing = async () => {
     if (localBookingComparison) {
@@ -179,7 +206,7 @@ export default function Prepare() {
   }
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-4 pb-28">
       {localBookingComparison ? (
         <SectionCard title="前后一天预订比价" eyebrow="Booking Comparison">
           <div className="space-y-3">
@@ -195,54 +222,162 @@ export default function Prepare() {
               </div>
             </article>
 
-            {localBookingComparison.options.map((option) => {
-              const isCheapest = option.id === localBookingComparison.cheapestOptionId
-              const isRecommended = option.id === localBookingComparison.recommendedOptionId
-              return (
-                <article key={option.id} className={`rounded-[24px] border px-4 py-4 shadow-sm ${isRecommended ? 'border-amber-300 bg-amber-50' : 'border-stone-200 bg-white'}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-sm font-semibold text-stone-900">{option.label}</h3>
-                      <p className="mt-1 text-[11px] text-stone-500">{option.departDate} 出发 · {option.returnDate} 返回 · {option.hotelNights} 晚</p>
-                    </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1">
-                      {isRecommended ? <span className="rounded-full bg-stone-900 px-2 py-1 text-[10px] text-white">综合推荐</span> : null}
-                      {isCheapest ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] text-emerald-700">最低价</span> : null}
-                    </div>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-stone-600">
-                    <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Plane className="mb-1 h-3.5 w-3.5 text-amber-700" />机票两人：{formatMoney(option.flightTotal)}</p>
-                    <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Ticket className="mb-1 h-3.5 w-3.5 text-amber-700" />高铁两人：{formatMoney(option.trainTotal)}</p>
-                    <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Hotel className="mb-1 h-3.5 w-3.5 text-amber-700" />酒店总价：{formatMoney(option.hotelTotal)}</p>
-                    <p className="rounded-2xl bg-white px-3 py-2 font-semibold text-stone-900 shadow-sm">机酒合计：{formatMoney(option.totalByFlight)}</p>
-                  </div>
-                  <p className="mt-3 text-xs leading-6 text-stone-600">{option.recommendation}</p>
-                  <div className="mt-3 space-y-2">
-                    {option.bookingTips.map((tip) => (
-                      <p key={tip} className="rounded-2xl bg-stone-50 px-3 py-2 text-[11px] leading-5 text-stone-500">{tip}</p>
-                    ))}
-                  </div>
-                </article>
-              )
-            })}
+            <div className="relative h-[420px] overflow-hidden">
+              {bookingOptions.map((option, index) => {
+                const forwardOffset = (index - activeBookingIndex + bookingOptions.length) % bookingOptions.length
+                const stackOffset = forwardOffset > bookingOptions.length / 2 ? forwardOffset - bookingOptions.length : forwardOffset
+                const isVisible = Math.abs(stackOffset) <= 1
+                const isActive = index === activeBookingIndex
+                const isCheapest = option.id === localBookingComparison.cheapestOptionId
+                const isRecommended = option.id === localBookingComparison.recommendedOptionId
 
-            {localBookingComparison.hotelOptions?.length ? (
+                return (
+                  <article
+                    key={option.id}
+                    className={cn(
+                      'absolute inset-x-3 top-0 rounded-[26px] border p-4 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
+                      isRecommended ? 'border-amber-300 bg-amber-50' : 'border-white/80 bg-white',
+                      isVisible ? 'pointer-events-auto' : 'pointer-events-none',
+                    )}
+                    style={{
+                      zIndex: isActive ? 30 : 20 - Math.abs(stackOffset),
+                      opacity: isVisible ? 1 : 0,
+                      transform: `translateX(${stackOffset * 22}px) translateY(${Math.abs(stackOffset) * 18}px) scale(${isActive ? 1 : 0.94})`,
+                    }}
+                    aria-hidden={!isVisible}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{option.departDate} · {option.returnDate}</p>
+                        <h3 className="mt-1 text-base font-semibold text-stone-950">{option.label}</h3>
+                        <p className="mt-1 text-[11px] text-stone-500">{option.hotelNights} 晚 · 两人出行估算</p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        {isRecommended ? <span className="rounded-full bg-stone-900 px-2 py-1 text-[10px] text-white">综合推荐</span> : null}
+                        {isCheapest ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] text-emerald-700">最低价</span> : null}
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] text-stone-600">
+                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Plane className="mb-1 h-3.5 w-3.5 text-amber-700" />机票两人：{formatMoney(option.flightTotal)}</p>
+                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Ticket className="mb-1 h-3.5 w-3.5 text-amber-700" />高铁两人：{formatMoney(option.trainTotal)}</p>
+                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Hotel className="mb-1 h-3.5 w-3.5 text-amber-700" />酒店总价：{formatMoney(option.hotelTotal)}</p>
+                      <p className="rounded-2xl bg-white px-3 py-2 font-semibold text-stone-900 shadow-sm">机酒合计：{formatMoney(option.totalByFlight)}</p>
+                    </div>
+                    <p className="mt-4 text-xs leading-6 text-stone-600">{option.recommendation}</p>
+                    <div className="mt-3 space-y-2">
+                      {option.bookingTips.map((tip) => (
+                        <p key={tip} className="rounded-2xl bg-white/80 px-3 py-2 text-[11px] leading-5 text-stone-500 shadow-sm">{tip}</p>
+                      ))}
+                    </div>
+                  </article>
+                )
+              })}
+              <button
+                type="button"
+                onClick={() => goToBooking(-1)}
+                className="absolute left-0 top-0 z-40 flex h-full w-16 items-center justify-start bg-transparent pl-1 text-stone-900/55 transition hover:text-stone-950"
+                aria-label="上一个比价方案"
+                title="上一个比价方案"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                  <ChevronLeft className="h-5 w-5" />
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => goToBooking(1)}
+                className="absolute right-0 top-0 z-40 flex h-full w-16 items-center justify-end bg-transparent pr-1 text-stone-900/55 transition hover:text-stone-950"
+                aria-label="下一个比价方案"
+                title="下一个比价方案"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                  <ChevronRight className="h-5 w-5" />
+                </span>
+              </button>
+              <div className="absolute bottom-2 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
+                {bookingOptions.map((option, index) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setActiveBookingIndex(index)}
+                    className={cn('h-1.5 rounded-full transition-all', index === activeBookingIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-300')}
+                    aria-label={`切换到${option.label}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {hotelOptions.length ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 px-1 text-sm font-semibold text-stone-900">
                   <Hotel className="h-4 w-4 text-amber-700" />
                   酒店参考
                 </div>
-                {localBookingComparison.hotelOptions.map((hotel) => (
-                  <article key={hotel.name} className="overflow-hidden rounded-[24px] border border-stone-200 bg-white shadow-sm">
-                    <img src={hotel.imageUrl} alt={hotel.name} className="h-32 w-full object-cover" loading="lazy" />
-                    <div className="px-4 py-4">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{hotel.area}</p>
-                      <h3 className="mt-1 text-sm font-semibold text-stone-900">{hotel.name}</h3>
-                      <p className="mt-2 text-xs leading-6 text-stone-600">{hotel.reason}</p>
-                      <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-medium leading-5 text-amber-800">{hotel.priceHint}</p>
-                    </div>
-                  </article>
-                ))}
+                <div className="relative h-[360px] overflow-hidden">
+                  {hotelOptions.map((hotel, index) => {
+                    const forwardOffset = (index - activeHotelIndex + hotelOptions.length) % hotelOptions.length
+                    const stackOffset = forwardOffset > hotelOptions.length / 2 ? forwardOffset - hotelOptions.length : forwardOffset
+                    const isVisible = Math.abs(stackOffset) <= 1
+                    const isActive = index === activeHotelIndex
+
+                    return (
+                      <article
+                        key={hotel.name}
+                        className={cn(
+                          'absolute inset-x-3 top-0 overflow-hidden rounded-[26px] border border-white/80 bg-white shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
+                          isVisible ? 'pointer-events-auto' : 'pointer-events-none',
+                        )}
+                        style={{
+                          zIndex: isActive ? 30 : 20 - Math.abs(stackOffset),
+                          opacity: isVisible ? 1 : 0,
+                          transform: `translateX(${stackOffset * 22}px) translateY(${Math.abs(stackOffset) * 18}px) scale(${isActive ? 1 : 0.94})`,
+                        }}
+                        aria-hidden={!isVisible}
+                      >
+                        <img src={hotel.imageUrl} alt={hotel.name} className="h-36 w-full object-cover" loading="lazy" />
+                        <div className="px-4 py-4">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{hotel.area}</p>
+                          <h3 className="mt-1 text-base font-semibold text-stone-950">{hotel.name}</h3>
+                          <p className="mt-2 text-xs leading-6 text-stone-600">{hotel.reason}</p>
+                          <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-medium leading-5 text-amber-800">{hotel.priceHint}</p>
+                        </div>
+                      </article>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => goToHotel(-1)}
+                    className="absolute left-0 top-0 z-40 flex h-full w-16 items-center justify-start bg-transparent pl-1 text-stone-900/55 transition hover:text-stone-950"
+                    aria-label="上一个酒店"
+                    title="上一个酒店"
+                  >
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                      <ChevronLeft className="h-5 w-5" />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToHotel(1)}
+                    className="absolute right-0 top-0 z-40 flex h-full w-16 items-center justify-end bg-transparent pr-1 text-stone-900/55 transition hover:text-stone-950"
+                    aria-label="下一个酒店"
+                    title="下一个酒店"
+                  >
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                      <ChevronRight className="h-5 w-5" />
+                    </span>
+                  </button>
+                  <div className="absolute bottom-2 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
+                    {hotelOptions.map((hotel, index) => (
+                      <button
+                        key={hotel.name}
+                        type="button"
+                        onClick={() => setActiveHotelIndex(index)}
+                        className={cn('h-1.5 rounded-full transition-all', index === activeHotelIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-300')}
+                        aria-label={`切换到${hotel.name}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : null}
           </div>
