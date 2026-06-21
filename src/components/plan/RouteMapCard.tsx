@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Map, MapPinned } from 'lucide-react'
 import { fetchAmapRoute } from '@/services/amapWebService'
 import { geocodeAmap, hasAmapKey, loadAmap } from '@/services/providers/amapProvider'
@@ -9,6 +9,8 @@ type RouteMapCardProps = {
   center: [number, number]
   destination: string
   offline?: boolean
+  activeDay?: number
+  onActiveDayChange?: (day: number) => void
 }
 
 type RoutePoint = {
@@ -61,17 +63,24 @@ const buildBaseLayers = (AMap: AMapNamespace) => {
   return layers
 }
 
-export default function RouteMapCard({ dayPlans, center, destination, offline = false }: RouteMapCardProps) {
+export default function RouteMapCard({ dayPlans, center, destination, offline = false, activeDay, onActiveDayChange }: RouteMapCardProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
-  const [activeDay, setActiveDay] = useState(1)
+  const [internalActiveDay, setInternalActiveDay] = useState(1)
   const [resolvedCenter, setResolvedCenter] = useState(center)
   const [resolvedPoints, setResolvedPoints] = useState<RoutePoint[]>([])
   const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([])
+  const selectedDay = activeDay ?? internalActiveDay
+  const setSelectedDay = useCallback((day: number) => {
+    if (activeDay === undefined) {
+      setInternalActiveDay(day)
+    }
+    onActiveDayChange?.(day)
+  }, [activeDay, onActiveDayChange])
   const activeDayPlan = useMemo(
-    () => dayPlans.find((plan) => plan.day === activeDay) ?? dayPlans[0],
-    [activeDay, dayPlans],
+    () => dayPlans.find((plan) => plan.day === selectedDay) ?? dayPlans[0],
+    [selectedDay, dayPlans],
   )
   const timelineSpots = useMemo(() => activeDayPlan?.spots ?? [], [activeDayPlan])
   const explicitPoints = useMemo(
@@ -81,10 +90,10 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
   const useOfflineTimeline = offline || !hasAmapKey()
 
   useEffect(() => {
-    if (!dayPlans.some((plan) => plan.day === activeDay)) {
-      setActiveDay(dayPlans[0]?.day ?? 1)
+    if (!dayPlans.some((plan) => plan.day === selectedDay)) {
+      setSelectedDay(dayPlans[0]?.day ?? 1)
     }
-  }, [activeDay, dayPlans])
+  }, [dayPlans, selectedDay, setSelectedDay])
 
   useEffect(() => {
     let cancelled = false
@@ -242,6 +251,22 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
           <MapPinned className="h-4 w-4 text-amber-700" />
           <strong className="text-sm">路线预览</strong>
         </div>
+        {dayPlans.length > 1 ? (
+          <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+            {dayPlans.map((dayPlan) => (
+              <button
+                key={dayPlan.day}
+                type="button"
+                onClick={() => setSelectedDay(dayPlan.day)}
+                className={`rounded-full px-3 py-2 text-[11px] font-semibold transition ${
+                  selectedDay === dayPlan.day ? 'bg-stone-900 text-white' : 'bg-white/75 text-stone-600 hover:bg-white'
+                }`}
+              >
+                Day {dayPlan.day}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="space-y-3">
           {timelineSpots.slice(0, 6).map((spot, index) => (
             <div key={`${spot.name}-${index}`} className="flex items-center gap-3">
@@ -276,9 +301,9 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
           <button
             key={dayPlan.day}
             type="button"
-            onClick={() => setActiveDay(dayPlan.day)}
+            onClick={() => setSelectedDay(dayPlan.day)}
             className={`rounded-full px-3 py-2 text-[11px] font-semibold transition ${
-              activeDay === dayPlan.day ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              selectedDay === dayPlan.day ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
             }`}
           >
             Day {dayPlan.day}
@@ -299,7 +324,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
         <div className="rounded-[20px] bg-stone-50 px-3 py-3">
           <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
             <MapPinned className="h-3.5 w-3.5 text-amber-700" />
-            Route Nodes · Day {activeDayPlan?.day ?? activeDay}
+            Route Nodes · Day {activeDayPlan?.day ?? selectedDay}
           </div>
           <div className="space-y-2">
             {timelineSpots.slice(0, 5).map((spot, index) => (
