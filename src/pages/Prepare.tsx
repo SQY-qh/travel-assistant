@@ -108,9 +108,11 @@ export default function Prepare() {
   const [livePricing, setLivePricing] = useState<LivePricingResult | null>(null)
   const [activeBookingIndex, setActiveBookingIndex] = useState(0)
   const [activeHotelIndex, setActiveHotelIndex] = useState(0)
+  const [activeOutfitIndex, setActiveOutfitIndex] = useState(0)
   const localBookingComparison = plan?.bookingComparison
   const bookingOptions = localBookingComparison?.options ?? []
   const hotelOptions = localBookingComparison?.hotelOptions ?? []
+  const outfitOptions = plan?.outfitSuggestions ?? []
 
   const queryResolution = useMemo(
     () => (plan ? resolveLivePricingQuery(profile, plan) : null),
@@ -134,6 +136,12 @@ export default function Prepare() {
     }
   }, [activeHotelIndex, hotelOptions.length])
 
+  useEffect(() => {
+    if (outfitOptions.length > 0 && activeOutfitIndex >= outfitOptions.length) {
+      setActiveOutfitIndex(0)
+    }
+  }, [activeOutfitIndex, outfitOptions.length])
+
   const goToBooking = (direction: -1 | 1) => {
     if (!bookingOptions.length) return
     setActiveBookingIndex((current) => (current + direction + bookingOptions.length) % bookingOptions.length)
@@ -142,6 +150,11 @@ export default function Prepare() {
   const goToHotel = (direction: -1 | 1) => {
     if (!hotelOptions.length) return
     setActiveHotelIndex((current) => (current + direction + hotelOptions.length) % hotelOptions.length)
+  }
+
+  const goToOutfit = (direction: -1 | 1) => {
+    if (!outfitOptions.length) return
+    setActiveOutfitIndex((current) => (current + direction + outfitOptions.length) % outfitOptions.length)
   }
 
   const refreshLivePricing = async () => {
@@ -645,44 +658,97 @@ export default function Prepare() {
       </SectionCard>
 
       <SectionCard title="穿搭推荐" eyebrow="Outfit Guidance">
-        <div className="space-y-3">
-          {plan.outfitSuggestions.map((outfit, index) => (
-            <article key={outfit.title} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-              <img
-                src={outfit.imageUrl || defaultOutfitImages[index % defaultOutfitImages.length]}
-                alt={outfit.title}
-                className="h-40 w-full object-cover"
-                loading="lazy"
-              />
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-stone-900">
-                    <Shirt className="h-4 w-4 text-amber-700" />
-                    {outfit.title}
+        <div className="relative h-[590px] overflow-hidden">
+          {outfitOptions.map((outfit, index) => {
+            const forwardOffset = (index - activeOutfitIndex + outfitOptions.length) % outfitOptions.length
+            const stackOffset = forwardOffset > outfitOptions.length / 2 ? forwardOffset - outfitOptions.length : forwardOffset
+            const isVisible = Math.abs(stackOffset) <= 1
+            const isActive = index === activeOutfitIndex
+
+            return (
+              <article
+                key={outfit.title}
+                className={cn(
+                  'absolute inset-x-3 top-0 overflow-hidden rounded-[26px] border border-white/80 bg-white shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
+                  isVisible ? 'pointer-events-auto' : 'pointer-events-none',
+                )}
+                style={{
+                  zIndex: isActive ? 30 : 20 - Math.abs(stackOffset),
+                  opacity: isVisible ? 1 : 0,
+                  transform: `translateX(${stackOffset * 22}px) translateY(${Math.abs(stackOffset) * 18}px) scale(${isActive ? 1 : 0.94})`,
+                }}
+                aria-hidden={!isVisible}
+              >
+                <img
+                  src={outfit.imageUrl || defaultOutfitImages[index % defaultOutfitImages.length]}
+                  alt={outfit.title}
+                  className="h-44 w-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2 text-base font-semibold text-stone-900">
+                      <Shirt className="h-4 w-4 shrink-0 text-amber-700" />
+                      <span>{outfit.title}</span>
+                    </div>
+                    {outfit.gender ? (
+                      <span className="shrink-0 rounded-full bg-stone-100 px-2 py-1 text-[10px] text-stone-500">{outfit.gender}</span>
+                    ) : null}
                   </div>
-                  {outfit.gender ? (
-                    <span className="shrink-0 rounded-full bg-stone-100 px-2 py-1 text-[10px] text-stone-500">{outfit.gender}</span>
+                  <p className="mt-2 text-xs leading-6 text-stone-500">{outfit.mood}</p>
+                  {outfit.keywords?.length ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {outfit.keywords.slice(0, 4).map((keyword) => (
+                        <span key={keyword} className="rounded-full bg-stone-100 px-3 py-1.5 text-[11px] font-medium text-stone-600">{keyword}</span>
+                      ))}
+                    </div>
                   ) : null}
-                </div>
-                <p className="mt-2 text-xs leading-6 text-stone-500">{outfit.mood}</p>
-                {outfit.keywords?.length ? (
+                  {outfit.interpretation ? (
+                    <p className="mt-3 text-xs leading-6 text-stone-500">{outfit.interpretation}</p>
+                  ) : null}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {outfit.keywords.map((keyword) => (
-                      <span key={keyword} className="rounded-full bg-stone-100 px-3 py-1.5 text-[11px] font-medium text-stone-600">{keyword}</span>
+                    {outfit.pieces.slice(0, 5).map((piece) => (
+                      <span key={piece} className="rounded-full bg-amber-50 px-3 py-2 text-[11px] text-amber-800">{piece}</span>
                     ))}
                   </div>
-                ) : null}
-                {outfit.interpretation ? (
-                  <p className="mt-3 text-xs leading-6 text-stone-500">{outfit.interpretation}</p>
-                ) : null}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {outfit.pieces.map((piece) => (
-                    <span key={piece} className="rounded-full bg-amber-50 px-3 py-2 text-[11px] text-amber-800">{piece}</span>
-                  ))}
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            )
+          })}
+          <button
+            type="button"
+            onClick={() => goToOutfit(-1)}
+            className="absolute left-0 top-0 z-40 flex h-full w-16 items-center justify-start bg-transparent pl-1 text-stone-900/55 transition hover:text-stone-950"
+            aria-label="上一套穿搭"
+            title="上一套穿搭"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+              <ChevronLeft className="h-5 w-5" />
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => goToOutfit(1)}
+            className="absolute right-0 top-0 z-40 flex h-full w-16 items-center justify-end bg-transparent pr-1 text-stone-900/55 transition hover:text-stone-950"
+            aria-label="下一套穿搭"
+            title="下一套穿搭"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+              <ChevronRight className="h-5 w-5" />
+            </span>
+          </button>
+          <div className="absolute bottom-2 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
+            {outfitOptions.map((outfit, index) => (
+              <button
+                key={outfit.title}
+                type="button"
+                onClick={() => setActiveOutfitIndex(index)}
+                className={cn('h-1.5 rounded-full transition-all', index === activeOutfitIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-300')}
+                aria-label={`切换到${outfit.title}`}
+              />
+            ))}
+          </div>
         </div>
       </SectionCard>
 
