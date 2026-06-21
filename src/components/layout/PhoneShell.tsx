@@ -29,7 +29,7 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
         <span>5G</span>
       </div>
       <div className="relative flex-1 overflow-hidden px-2 pb-2">
-        <div className="flex h-full flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[#f9f5ef] shadow-inner">
+        <div className="micro-motion-root flex h-full flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[#f9f5ef] shadow-inner">
           <div className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4', isCallMode && 'overflow-hidden px-0 pb-0 pt-0')}>{children}</div>
           {!isCallMode ? (
             <div className="px-3 pb-3 pt-1">

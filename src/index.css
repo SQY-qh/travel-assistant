@@ -48,6 +48,56 @@ textarea {
   font: inherit;
 }
 
+.micro-motion-root :is(button, a, [role='button'], article, section, img, input, textarea, select, p[class*='rounded'], span[class*='rounded'], li[class*='rounded'], div[class*='rounded']) {
+  scale: 1;
+  transform-origin: center;
+  transition:
+    scale 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+  will-change: scale;
+}
+
+.micro-motion-root :is(button, a, [role='button'], input, textarea, select) {
+  touch-action: manipulation;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .micro-motion-root :is(button, a, [role='button'], article, section, img, input, textarea, select, p[class*='rounded'], span[class*='rounded'], li[class*='rounded'], div[class*='rounded']):hover {
+    scale: 1.018;
+    filter: saturate(1.03);
+  }
+
+  .micro-motion-root :is(button, a, [role='button']):hover {
+    scale: 1.035;
+  }
+}
+
+.micro-motion-root :is(button, a, [role='button'], article, section, img, input, textarea, select, p[class*='rounded'], span[class*='rounded'], li[class*='rounded'], div[class*='rounded']):active,
+.micro-motion-root :is(input, textarea, select):focus {
+  scale: 1.026;
+}
+
+.micro-motion-root :is(button, a, [role='button']):active {
+  scale: 1.045;
+}
+
+.micro-motion-root :is(button, a, [role='button']):disabled {
+  scale: 1;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .micro-motion-root :is(button, a, [role='button'], article, section, img, input, textarea, select, p[class*='rounded'], span[class*='rounded'], li[class*='rounded'], div[class*='rounded']) {
+    transition: none;
+    will-change: auto;
+  }
+}
+
 textarea::-webkit-scrollbar,
 div::-webkit-scrollbar {
   width: 8px;
