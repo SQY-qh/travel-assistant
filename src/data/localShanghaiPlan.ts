@@ -280,6 +280,195 @@ export const isShenzhenShanghaiPresetProfile = (profile: TravelProfile) => {
   return departure === '深圳' && destination === '上海' && /7月|7\/1|2026-07-01|7月1/.test(text) && /5天/.test(profile.dateRange) && /情侣/.test(text)
 }
 
+const withAdjustmentNote = (notes: string[], note: string) => [note, ...notes.filter((item) => item !== note)]
+
+export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, text: string): { plan: TravelPlan; message: string } | null => {
+  if (!plan?.localOnly || plan.selectedRecommendation.city !== '上海') return null
+  const source = text.replace(/\s+/g, '')
+
+  if (/(迪士尼|乐园).*(雨|下雨|暴雨|闭园|项目少)|(?:雨|下雨|暴雨|闭园).*(迪士尼|乐园)/.test(source)) {
+    const nextDayPlans = plan.dayPlans.map((dayPlan) => {
+      if (dayPlan.day === 3) {
+        return {
+          ...dayPlan,
+          title: '雨天改为陆家嘴与前滩室内线',
+          routeSummary: '酒店 -> 陆家嘴中心 / 上海中心 -> 浦东美术馆 -> 前滩太古里 -> 返回市区',
+          spots: [
+            { time: '09:30', name: '陆家嘴中心 / 上海中心商圈', type: '景点', note: '把原迪士尼日改成室内为主，先在陆家嘴完成城市天际线、商场和观景备选；暴雨时减少户外步行。', imageUrl: shanghaiImages.bund, lat: 31.234, lng: 121.507, cost: 160 },
+            { time: '12:30', name: '陆家嘴室内午餐', type: '餐饮', note: '选择国金中心、正大广场或上海中心内餐厅，两人预算压到 ¥220-320，方便避雨。', lat: 31.236, lng: 121.502, cost: 280 },
+            { time: '14:30', name: '浦东美术馆 / 室内展馆', type: '景点', note: '若展览预约合适，下午安排浦东美术馆；没有票则改上海中心观光或商场慢逛。', imageUrl: shanghaiImages.bund, lat: 31.239, lng: 121.499, cost: 240 },
+            { time: '17:30', name: '前滩太古里晚餐与休整', type: '餐饮', note: '雨天不赶远路，前滩太古里完成晚餐和轻购物；第二天早起再去迪士尼。', lat: 31.153, lng: 121.478, cost: 420 },
+          ],
+        } satisfies DayPlan
+      }
+      if (dayPlan.day === 4) {
+        return {
+          ...dayPlan,
+          title: '迪士尼顺延一日',
+          routeSummary: '上海迪士尼度假区；原博物馆与苏河湾压缩为 Day 5 上午或取消',
+          spots: dayPlans[2].spots.map((spot) => ({
+            ...spot,
+            note: spot.name.includes('上海迪士尼乐园') ? `${spot.note} 这是从 Day 3 顺延过来的版本，建议提前查看门票改签和天气。` : spot.note,
+          })),
+        } satisfies DayPlan
+      }
+      if (dayPlan.day === 5) {
+        return {
+          ...dayPlan,
+          routeSummary: '愚园路轻逛 -> 可补上海博物馆 / 苏河湾短线 -> 虹桥返程',
+          spots: dayPlan.spots.map((spot) =>
+            spot.name.includes('愚园路')
+              ? { ...spot, note: '如果 Day 4 顺延迪士尼，最后一天只保留轻量街区；想补博物馆就缩短愚园路，避免返程紧张。' }
+              : spot,
+          ),
+        } satisfies DayPlan
+      }
+      return dayPlan
+    })
+
+    return {
+      plan: {
+        ...plan,
+        dayPlans: nextDayPlans,
+        notes: withAdjustmentNote(plan.notes, '已按“迪士尼遇雨 / 闭园项目多”调整：Day 3 改室内浦东线，Day 4 顺延迪士尼。'),
+      },
+      message: '已把行程改好了：Day 3 不硬去迪士尼，改成陆家嘴、浦东美术馆和前滩太古里室内线；Day 4 顺延迪士尼，Day 5 压缩成轻松返程。你现在去“行程”页看 Day 3 和 Day 4 就是新安排。',
+    }
+  }
+
+  if (/(航班|飞机|高铁).*(延误|晚点|迟到|很晚到|晚上到)|(?:延误|晚点|迟到|很晚到|晚上到).*(航班|飞机|高铁|到上海)/.test(source)) {
+    const nextDayPlans = plan.dayPlans.map((dayPlan) => {
+      if (dayPlan.day === 1) {
+        return {
+          ...dayPlan,
+          title: '延误抵达后的轻量外滩夜景',
+          routeSummary: '延误抵达 -> 酒店入住 -> 外滩源 / 北外滩短线 -> 酒店休息',
+          spots: [
+            { time: '18:30', name: '抵达上海并直接入住酒店', type: '酒店', note: '取消下午南京东路慢逛，先把行李和入住搞定；如果 20:00 后到，只保留酒店附近晚餐。', imageUrl: shanghaiImages.radisson, lat: 31.2355, lng: 121.4752, cost: 3200 },
+            { time: '20:00', name: '外滩源 / 北外滩短线', type: '景点', note: '只做 60-90 分钟夜景，不再跨太多点；如果太累，改为酒店附近散步。', imageUrl: shanghaiImages.bund, lat: 31.2503, lng: 121.4985, cost: 0 },
+            { time: '21:30', name: '酒店附近晚餐与休息', type: '餐饮', note: '晚餐选南京东路或人民广场附近，避免排队店，两人控制 ¥180-280。', lat: 31.2355, lng: 121.4752, cost: 240 },
+          ],
+        } satisfies DayPlan
+      }
+      if (dayPlan.day === 5) {
+        return {
+          ...dayPlan,
+          title: '补回南京东路与轻松返程',
+          routeSummary: '南京东路 / 外滩源补逛 -> 午餐 -> 取行李 -> 虹桥返程',
+          spots: [
+            { time: '09:30', name: '南京东路与外滩源补逛', type: '景点', note: '把首日取消的南京东路、外滩源补到返程日上午，拍照和伴手礼都更从容。', imageUrl: shanghaiImages.peaceHotel, lat: 31.2397, lng: 121.4902, cost: 80 },
+            ...dayPlan.spots.slice(1),
+          ],
+        } satisfies DayPlan
+      }
+      return dayPlan
+    })
+
+    return {
+      plan: {
+        ...plan,
+        dayPlans: nextDayPlans,
+        notes: withAdjustmentNote(plan.notes, '已按“首日航班 / 交通延误”调整：Day 1 改短夜景，Day 5 补回南京东路。'),
+      },
+      message: '已调整：Day 1 改成延误抵达后的轻量外滩夜景，不再硬逛南京东路；南京东路和外滩源补到 Day 5 上午。去“行程”页看 Day 1 和 Day 5 就能看到变化。',
+    }
+  }
+
+  if (/(预算|钱|花费|费用).*(8000|八千|收紧|降低|压缩|省钱)|(?:8000|八千).*(预算|以内|左右)/.test(source)) {
+    const nextDayPlans = plan.dayPlans.map((dayPlan) => {
+      if (dayPlan.day === 2 || dayPlan.day === 4) {
+        return {
+          ...dayPlan,
+          spots: dayPlan.spots.map((spot) =>
+            spot.type === '餐饮'
+              ? {
+                  ...spot,
+                  note: `${spot.note} 预算收紧后，这一餐优先选商圈简餐或本帮小馆，不做高客单约会餐。`,
+                  cost: Math.min(spot.cost ?? 260, 260),
+                }
+              : spot,
+          ),
+        } satisfies DayPlan
+      }
+      if (dayPlan.day === 3) {
+        return {
+          ...dayPlan,
+          spots: dayPlan.spots.map((spot) =>
+            spot.name.includes('上海迪士尼乐园')
+              ? { ...spot, note: '保留迪士尼门票，但不买尊享卡，只抓 4 个核心项目；若当日排队过长，转迪士尼小镇和低排队项目。', cost: 1180 }
+              : spot,
+          ),
+        } satisfies DayPlan
+      }
+      return dayPlan
+    })
+
+    return {
+      plan: {
+        ...plan,
+        dayPlans: nextDayPlans,
+        budget: {
+          ...plan.budget,
+          total: 7980,
+          hotel: 2600,
+          food: 1280,
+          transportation: 560,
+          tickets: 1180,
+          insurance: 100,
+          flexible: 200,
+        },
+        notes: withAdjustmentNote(plan.notes, '已按“预算收紧到 8000 左右”调整：酒店换性价比区域，餐饮降档，迪士尼不加尊享卡。'),
+      },
+      message: '已把预算版改好：总预算压到约 ¥7980，酒店从核心南京东路降到苏州河 / 中山公园性价比区，餐饮减少高客单约会餐，迪士尼保留但不买尊享卡。你可以在“行程”的预算分配和 Day 2、Day 3、Day 4 看到变化。',
+    }
+  }
+
+  if (/(购物|买东西|逛商场|买礼物|伴手礼|少走景点|减少景点|不想逛景点)/.test(source)) {
+    const nextDayPlans = plan.dayPlans.map((dayPlan) => {
+      if (dayPlan.day === 4) {
+        return {
+          ...dayPlan,
+          title: '苏河湾、静安与购物加量',
+          routeSummary: '上海博物馆短逛 -> 苏河湾万象天地 -> 静安寺商圈 -> 巨鹿路晚餐',
+          spots: dayPlan.spots.map((spot) => {
+            if (spot.name.includes('上海博物馆')) {
+              return { ...spot, note: '博物馆压缩到 90 分钟，只看重点展厅，把下午时间留给苏河湾和静安购物。' }
+            }
+            if (spot.name.includes('静安寺')) {
+              return { ...spot, name: '静安寺外观 + 久光 / 芮欧购物', note: '这里改成购物主线：久光、芮欧、晶品都在步行范围，适合买香氛、服饰和伴手礼。', cost: 300 }
+            }
+            return spot
+          }),
+        } satisfies DayPlan
+      }
+      if (dayPlan.day === 5) {
+        return {
+          ...dayPlan,
+          title: '伴手礼与轻松返程',
+          routeSummary: '愚园路咖啡 -> 中山公园 / 龙之梦购物 -> 取行李返程',
+          spots: dayPlan.spots.map((spot) =>
+            spot.name.includes('中山公园')
+              ? { ...spot, name: '中山公园 / 龙之梦午餐与补购物', note: '返程日前半天集中买伴手礼和补购物，选靠近地铁的商场，带行李也不折腾。', cost: 360 }
+              : spot,
+          ),
+        } satisfies DayPlan
+      }
+      return dayPlan
+    })
+
+    return {
+      plan: {
+        ...plan,
+        dayPlans: nextDayPlans,
+        notes: withAdjustmentNote(plan.notes, '已按“加购物 / 减少景点”调整：Day 4 加静安购物，Day 5 加伴手礼补购物。'),
+      },
+      message: '已调整成购物更友好的版本：Day 4 博物馆缩短，静安寺商圈加久光、芮欧和晶品；Day 5 在中山公园 / 龙之梦补伴手礼。去“行程”页看 Day 4 和 Day 5 就是新路线。',
+    }
+  }
+
+  return null
+}
+
 export function buildShenzhenShanghaiLocalPlan(profile: TravelProfile): TravelPlan {
   return {
     source: 'local-preset',

@@ -335,7 +335,7 @@ export async function collectConversationTurn(current: TravelProfile, text: stri
           if (shouldGeneratePlan && isShenzhenShanghaiPresetProfile(profile)) {
             return {
               profile,
-              assistantMessage: '已为你生成深圳到上海 7 月 1 日出发的情侣 5 天游方案，包含细化景点、前后一天机酒火车比价、最低组合推荐和临时改行程策略。',
+              assistantMessage: '已为你生成深圳到上海 7 月 1 日出发的情侣 5 天游方案，包含细化景点、前后一天机酒火车比价和最低组合推荐。后续你可以直接问我：迪士尼下雨怎么办、首日航班延误怎么办、预算降到 8000 怎么办、想加购物怎么办，我会直接修改行程页里的对应天数。',
               missingFields,
               shouldGeneratePlan,
               summary,

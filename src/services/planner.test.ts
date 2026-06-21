@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { applyShenzhenShanghaiPlanAdjustment } from '@/data/localShanghaiPlan'
 import { buildTravelPlan, collectConversationTurn, ensurePlanCityConsistency, extractProfileFromText, getMissingFields } from '@/services/planner'
 import { alignPlanDayCount } from '@/services/llmPlan'
 import { createEmptyProfile } from '@/types/travel'
@@ -164,6 +165,33 @@ describe('planner service', () => {
     ].join(' ')
 
     expect(visibleText).not.toMatch(/本地预存|离线时间轴|不加载|不调用|不依赖|远程模型|远程路线|API Key|secrets/)
+  })
+
+  it('深圳到上海本地方案支持用户说“7月1号出游”直接生成', async () => {
+    const result = await collectConversationTurn(
+      createEmptyProfile(),
+      '出发地深圳，目的地上海，7月1号出游，玩5天，情侣出游，预算1万',
+    )
+    const plan = buildTravelPlan(result.profile)
+
+    expect(result.shouldGeneratePlan).toBe(true)
+    expect(plan.source).toBe('local-preset')
+    expect(plan.selectedRecommendation.city).toBe('上海')
+    expect(result.assistantMessage).toContain('迪士尼下雨怎么办')
+  })
+
+  it('深圳到上海本地方案可在对话中触发临时改行程', () => {
+    const profile = extractProfileFromText(
+      createEmptyProfile(),
+      '出发地深圳，目的地上海，7月1号出游，玩5天，情侣出游，预算1万',
+    )
+    const plan = buildTravelPlan(profile)
+    const adjusted = applyShenzhenShanghaiPlanAdjustment(plan, '如果迪士尼那天下雨怎么办')
+
+    expect(adjusted).not.toBeNull()
+    expect(adjusted?.plan.dayPlans.find((day) => day.day === 3)?.title).toContain('雨天')
+    expect(adjusted?.plan.dayPlans.find((day) => day.day === 4)?.title).toContain('迪士尼')
+    expect(adjusted?.message).toContain('Day 3')
   })
 
   it('旧缓存中的穿搭封面应按当前城市修正为目的地封面', () => {

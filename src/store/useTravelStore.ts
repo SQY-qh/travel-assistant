@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { applyShenzhenShanghaiPlanAdjustment } from '@/data/localShanghaiPlan'
 import { enrichPlanWithAmap } from '@/services/poiEnrichment'
 import { buildTravelPlan, buildTravelPlanAsync, collectConversationTurn, ensurePlanCityConsistency, extractProfileFromText, getMissingFields } from '@/services/planner'
 import { emitTelemetry } from '@/services/telemetry'
@@ -122,6 +123,23 @@ export const useTravelStore = create<TravelState>()(
         }))
 
         try {
+          const adjusted = applyShenzhenShanghaiPlanAdjustment(get().plan, trimmed)
+          if (adjusted) {
+            assistantMessages.push(adjusted.message)
+            set((state) => ({
+              ...state,
+              plan: adjusted.plan,
+              activeRecommendationId: adjusted.plan.selectedRecommendation.id,
+              isGenerating: false,
+              messages: [...state.messages, createMessage('assistant', adjusted.message)],
+            }))
+            return {
+              assistantMessages,
+              spokenText: adjusted.message,
+              shouldGeneratePlan: false,
+            }
+          }
+
           const turn = await collectConversationTurn(get().profile, trimmed, get().expectedField || undefined)
           void emitTelemetry('chat.assistant', { content: turn.assistantMessage, summary: turn.summary })
           assistantMessages.push(turn.assistantMessage)
@@ -213,6 +231,22 @@ export const useTravelStore = create<TravelState>()(
         }))
 
         try {
+          const adjusted = applyShenzhenShanghaiPlanAdjustment(get().plan, trimmed)
+          if (adjusted) {
+            set((state) => ({
+              ...state,
+              plan: adjusted.plan,
+              activeRecommendationId: adjusted.plan.selectedRecommendation.id,
+              isGenerating: false,
+              messages: [...state.messages, createMessage('assistant', adjusted.message)],
+            }))
+            return {
+              assistantMessages: [adjusted.message],
+              spokenText: adjusted.message,
+              shouldGeneratePlan: false,
+            }
+          }
+
           const profile = extractProfileFromText(get().profile, trimmed, get().expectedField || undefined)
           const missingFields = getMissingFields(profile)
           const summary = summarizeProfile(profile)

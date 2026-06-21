@@ -373,22 +373,6 @@ export default function Plan() {
         )}
       </SectionCard>
 
-      {plan.contingencyPlans?.length ? (
-        <SectionCard title="临时修改策略" eyebrow="Change Handling">
-          <div className="space-y-3">
-            {plan.contingencyPlans.map((item) => (
-              <article key={item.trigger} className="rounded-[24px] bg-stone-900 px-4 py-4 text-white shadow-lg">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">触发情况</p>
-                <h2 className="mt-1 text-sm font-semibold">{item.trigger}</h2>
-                <p className="mt-3 text-xs leading-6 text-white/75">调整策略：{item.strategy}</p>
-                <p className="mt-2 text-xs leading-6 text-white/75">后续规划：{item.nextPlan}</p>
-                <p className="mt-2 rounded-2xl bg-white/10 px-3 py-2 text-[11px] leading-5 text-white/70">取舍：{item.tradeoff}</p>
-              </article>
-            ))}
-          </div>
-        </SectionCard>
-      ) : null}
-
     </div>
   )
 }
