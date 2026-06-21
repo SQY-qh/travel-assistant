@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BriefcaseBusiness, ChevronLeft, ChevronRight, FileText, Hotel, Plane, RefreshCw, ShieldPlus, Shirt, Ticket, TriangleAlert } from 'lucide-react'
 import SectionCard from '@/components/common/SectionCard'
+import { shenzhenShanghaiBookingComparison } from '@/data/localShanghaiPlan'
 import { fetchLivePricing, resolveLivePricingQuery } from '@/services/livePricing'
 import { useTravelStore } from '@/store/useTravelStore'
 import { cn } from '@/lib/utils'
-import type { LivePricingResult } from '@/types/travel'
+import type { HotelVisualOption, LivePricingResult } from '@/types/travel'
 
 type PricingStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -75,6 +76,30 @@ const defaultOutfitImages = [
   assetUrl('outfits/rainy-indoor-women.jpg'),
   assetUrl('outfits/evening-dinner-men.jpg'),
 ]
+
+const normalizeHotelGallery = (hotel: HotelVisualOption) => {
+  const presetHotel = shenzhenShanghaiBookingComparison.hotelOptions?.find(
+    (option) => option.name === hotel.name || option.area === hotel.area,
+  )
+  const presetGallery = presetHotel?.roomImages ?? []
+  const sourceGallery = hotel.roomImages?.length ? hotel.roomImages : presetGallery
+  const exteriorUrl = hotel.imageUrl || presetHotel?.imageUrl || sourceGallery[0]?.url || ''
+  const mergedGallery = [
+    { url: exteriorUrl, label: '酒店外景' },
+    ...sourceGallery.map((image) => ({
+      ...image,
+      label: /外观|外滩建筑|大堂/.test(image.label) ? image.label : image.label.replace(/参考$/, '') || '房间图片',
+    })),
+  ]
+
+  const seen = new Set<string>()
+  return mergedGallery
+    .filter((image) => image.url && !seen.has(image.url) && seen.add(image.url))
+    .map((image, index) => ({
+      ...image,
+      label: index === 0 ? '酒店外景' : image.label.includes('房') || image.label.includes('套') ? image.label : '房间图片',
+    }))
+}
 
 export default function Prepare() {
   const { plan, profile } = useTravelStore()
@@ -316,7 +341,7 @@ export default function Prepare() {
                     const stackOffset = forwardOffset > hotelOptions.length / 2 ? forwardOffset - hotelOptions.length : forwardOffset
                     const isVisible = Math.abs(stackOffset) <= 1
                     const isActive = index === activeHotelIndex
-                    const roomGallery = hotel.roomImages?.length ? hotel.roomImages : [{ url: hotel.imageUrl, label: '酒店图片' }]
+                    const roomGallery = normalizeHotelGallery(hotel)
                     const sideGallery = roomGallery.slice(1, 3)
 
                     return (
@@ -340,7 +365,8 @@ export default function Prepare() {
                                 src={roomGallery[0].url}
                                 alt={`${hotel.name}${roomGallery[0].label}`}
                                 className="h-40 w-full object-cover"
-                                loading="lazy"
+                                loading="eager"
+                                decoding="async"
                               />
                               <span className="absolute bottom-2 left-2 rounded-full bg-stone-950/75 px-2.5 py-1 text-[10px] text-white backdrop-blur">
                                 {roomGallery[0].label}
@@ -353,7 +379,8 @@ export default function Prepare() {
                                     src={image.url}
                                     alt={`${hotel.name}${image.label}`}
                                     className="h-[76px] w-full object-cover"
-                                    loading="lazy"
+                                    loading="eager"
+                                    decoding="async"
                                   />
                                   <span className="absolute bottom-1.5 left-1.5 rounded-full bg-white/85 px-2 py-0.5 text-[9px] text-stone-700 shadow-sm">
                                     {image.label}
@@ -371,7 +398,8 @@ export default function Prepare() {
                                   src={image.url}
                                   alt={`${hotel.name}${image.label}缩略图`}
                                   className="h-14 w-full object-cover"
-                                  loading="lazy"
+                                  loading="eager"
+                                  decoding="async"
                                 />
                                 <p className="px-2 py-1.5 text-[10px] font-medium text-stone-600">{image.label}</p>
                               </div>
