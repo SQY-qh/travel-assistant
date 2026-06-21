@@ -11,6 +11,7 @@ type RouteMapCardProps = {
   offline?: boolean
   activeDay?: number
   onActiveDayChange?: (day: number) => void
+  showNodeList?: boolean
 }
 
 type RoutePoint = {
@@ -63,7 +64,7 @@ const buildBaseLayers = (AMap: AMapNamespace) => {
   return layers
 }
 
-export default function RouteMapCard({ dayPlans, center, destination, offline = false, activeDay, onActiveDayChange }: RouteMapCardProps) {
+export default function RouteMapCard({ dayPlans, center, destination, offline = false, activeDay, onActiveDayChange, showNodeList = true }: RouteMapCardProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
@@ -267,25 +268,29 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
             ))}
           </div>
         ) : null}
-        <div className="space-y-3">
-          {timelineSpots.slice(0, 6).map((spot, index) => (
-            <div key={`${spot.name}-${index}`} className="flex items-center gap-3">
-              <div className="flex w-10 flex-col items-center">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-900 text-[11px] font-semibold text-white">{index + 1}</span>
-                {index !== timelineSpots.length - 1 ? <span className="mt-1 h-8 w-px bg-stone-300" /> : null}
-              </div>
-              <div className="rounded-2xl bg-white/85 px-3 py-2 shadow-sm">
-                <p className="text-xs font-semibold text-stone-900">{spot.name}</p>
-                <p className="text-[11px] text-stone-500">{spot.time} · {spot.note}</p>
-              </div>
+        {showNodeList ? (
+          <>
+            <div className="space-y-3">
+              {timelineSpots.slice(0, 6).map((spot, index) => (
+                <div key={`${spot.name}-${index}`} className="flex items-center gap-3">
+                  <div className="flex w-10 flex-col items-center">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-900 text-[11px] font-semibold text-white">{index + 1}</span>
+                    {index !== timelineSpots.length - 1 ? <span className="mt-1 h-8 w-px bg-stone-300" /> : null}
+                  </div>
+                  <div className="rounded-2xl bg-white/85 px-3 py-2 shadow-sm">
+                    <p className="text-xs font-semibold text-stone-900">{spot.name}</p>
+                    <p className="text-[11px] text-stone-500">{spot.time} · {spot.note}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <p className="mt-4 text-[11px] leading-5 text-stone-500">
-          {offline
-            ? '已按当天动线展示关键节点，建议根据天气、人流和体力微调停留时长。'
-            : '已按路线节点展示当天动线，关键位置可作为导航与转场参考。'}
-        </p>
+            <p className="mt-4 text-[11px] leading-5 text-stone-500">
+              {offline
+                ? '已按当天动线展示关键节点，建议根据天气、人流和体力微调停留时长。'
+                : '已按路线节点展示当天动线，关键位置可作为导航与转场参考。'}
+            </p>
+          </>
+        ) : null}
       </div>
     )
   }
@@ -321,25 +326,27 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
                 : '高德底图已显示，正在按推荐节点绘制城市动线。'
             : '正在加载地图资源...'}
         </p>
-        <div className="rounded-[20px] bg-stone-50 px-3 py-3">
-          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
-            <MapPinned className="h-3.5 w-3.5 text-amber-700" />
-            Route Nodes · Day {activeDayPlan?.day ?? selectedDay}
-          </div>
-          <div className="space-y-2">
-            {timelineSpots.slice(0, 5).map((spot, index) => (
-              <div key={`${spot.name}-${index}`} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 text-[10px] font-semibold text-white">
-                  {index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-stone-800">{spot.name}</p>
-                  <p className="text-[11px] leading-5 text-stone-500">{spot.time} · {spot.note}</p>
+        {showNodeList ? (
+          <div className="rounded-[20px] bg-stone-50 px-3 py-3">
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+              <MapPinned className="h-3.5 w-3.5 text-amber-700" />
+              Route Nodes · Day {activeDayPlan?.day ?? selectedDay}
+            </div>
+            <div className="space-y-2">
+              {timelineSpots.slice(0, 5).map((spot, index) => (
+                <div key={`${spot.name}-${index}`} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 text-[10px] font-semibold text-white">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-stone-800">{spot.name}</p>
+                    <p className="text-[11px] leading-5 text-stone-500">{spot.time} · {spot.note}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   )

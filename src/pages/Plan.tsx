@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Clock3, Compass, Landmark, Wallet } from 'lucide-react'
 import BudgetPieChart from '@/components/plan/BudgetPieChart'
 import RouteMapCard from '@/components/plan/RouteMapCard'
@@ -10,8 +10,6 @@ export default function Plan() {
   const { plan, selectRecommendation, activeRecommendationId } = useTravelStore()
   const [activeSpotIndex, setActiveSpotIndex] = useState(0)
   const [activeDailyDay, setActiveDailyDay] = useState(1)
-  const dailyScrollerRef = useRef<HTMLDivElement | null>(null)
-  const dailyCardRefs = useRef<Record<number, HTMLElement | null>>({})
 
   useEffect(() => {
     if (!plan?.dayPlans.length) return
@@ -37,6 +35,7 @@ export default function Plan() {
 
   const isStoredShanghaiPlan = plan.localOnly && plan.selectedRecommendation.city === '上海'
   const spotRecommendations = plan.spotRecommendations ?? []
+  const activeDailyIndex = Math.max(0, plan.dayPlans.findIndex((dayPlan) => dayPlan.day === activeDailyDay))
 
   const goToSpot = (direction: -1 | 1) => {
     if (!spotRecommendations.length) return
@@ -45,30 +44,12 @@ export default function Plan() {
 
   const handleDailyDayChange = (day: number) => {
     setActiveDailyDay(day)
-    dailyCardRefs.current[day]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }
 
-  const handleDailyScroll = () => {
-    const scroller = dailyScrollerRef.current
-    if (!scroller) return
-    const scrollerCenter = scroller.scrollLeft + scroller.clientWidth / 2
-    let closestDay = activeDailyDay
-    let closestDistance = Number.POSITIVE_INFINITY
-
-    for (const dayPlan of plan.dayPlans) {
-      const card = dailyCardRefs.current[dayPlan.day]
-      if (!card) continue
-      const cardCenter = card.offsetLeft + card.clientWidth / 2
-      const distance = Math.abs(cardCenter - scrollerCenter)
-      if (distance < closestDistance) {
-        closestDistance = distance
-        closestDay = dayPlan.day
-      }
-    }
-
-    if (closestDay !== activeDailyDay) {
-      setActiveDailyDay(closestDay)
-    }
+  const goToDailyDay = (direction: -1 | 1) => {
+    if (!plan.dayPlans.length) return
+    const nextIndex = (activeDailyIndex + direction + plan.dayPlans.length) % plan.dayPlans.length
+    setActiveDailyDay(plan.dayPlans[nextIndex].day)
   }
 
   return (
@@ -254,56 +235,98 @@ export default function Plan() {
               destination={plan.selectedRecommendation.planningCity || plan.selectedRecommendation.city}
               activeDay={activeDailyDay}
               onActiveDayChange={handleDailyDayChange}
+              showNodeList={false}
             />
-            <div
-              ref={dailyScrollerRef}
-              onScroll={handleDailyScroll}
-              className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2"
-            >
+            <div className="relative h-[610px] overflow-hidden">
               {plan.dayPlans.map((dayPlan) => (
-                <article
-                  key={dayPlan.day}
-                  ref={(node) => {
-                    dailyCardRefs.current[dayPlan.day] = node
-                  }}
-                  className={cn(
-                    'min-w-[88%] snap-center rounded-[26px] border bg-stone-50 p-4 transition',
-                    activeDailyDay === dayPlan.day ? 'border-stone-900 shadow-[0_14px_34px_rgba(41,33,20,0.14)]' : 'border-white/80',
-                  )}
-                >
-                  <button type="button" onClick={() => handleDailyDayChange(dayPlan.day)} className="w-full text-left">
+                (() => {
+                  const index = plan.dayPlans.findIndex((item) => item.day === dayPlan.day)
+                  const forwardOffset = (index - activeDailyIndex + plan.dayPlans.length) % plan.dayPlans.length
+                  const stackOffset = forwardOffset > plan.dayPlans.length / 2 ? forwardOffset - plan.dayPlans.length : forwardOffset
+                  const isVisible = Math.abs(stackOffset) <= 1
+                  const isActive = dayPlan.day === activeDailyDay
+
+                  return (
+                    <article
+                      key={dayPlan.day}
+                      className={cn(
+                        'absolute inset-x-3 top-0 overflow-hidden rounded-[28px] border border-white/80 bg-stone-50 p-4 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
+                        isVisible ? 'pointer-events-auto' : 'pointer-events-none',
+                      )}
+                      style={{
+                        zIndex: isActive ? 30 : 20 - Math.abs(stackOffset),
+                        opacity: isVisible ? 1 : 0,
+                        transform: `translateX(${stackOffset * 24}px) translateY(${Math.abs(stackOffset) * 20}px) scale(${isActive ? 1 : 0.94})`,
+                      }}
+                      aria-hidden={!isVisible}
+                    >
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.24em] text-stone-400">Day {dayPlan.day}</p>
-                        <h2 className="mt-1 text-sm font-semibold text-stone-900">{dayPlan.title}</h2>
-                        <p className="mt-2 text-xs leading-6 text-stone-500">{dayPlan.routeSummary}</p>
+                        <h2 className="mt-1 text-lg font-semibold leading-7 text-stone-950">{dayPlan.title}</h2>
+                        <p className="mt-3 text-sm leading-7 text-stone-500">{dayPlan.routeSummary}</p>
                       </div>
-                      <div className="rounded-2xl bg-white px-3 py-2 text-[11px] text-stone-500 shadow-sm">
-                        {dayPlan.spots.length} 个节点
+                      <div className="shrink-0 rounded-full bg-white px-4 py-3 text-center text-sm leading-6 text-stone-500 shadow-sm">
+                        <span className="block text-lg font-semibold text-stone-700">{dayPlan.spots.length}</span>
+                        个<br />节点
                       </div>
                     </div>
-                  </button>
-                  <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                    {dayPlan.spots.map((spot) => (
-                      <div key={`${dayPlan.day}-${spot.time}-${spot.name}`} className="w-[82%] shrink-0 rounded-[22px] bg-white p-3 shadow-sm">
-                        {spot.imageUrl ? (
-                          <img src={spot.imageUrl} alt={spot.name} className="mb-3 h-24 w-full rounded-2xl object-cover" loading="lazy" />
-                        ) : null}
-                        <div className="flex items-center gap-2 text-stone-900">
-                          {spot.type === '景点' ? <Landmark className="h-4 w-4 text-amber-700" /> : null}
-                          {spot.type === '交通' ? <Compass className="h-4 w-4 text-amber-700" /> : null}
-                          {spot.type === '餐饮' ? <Clock3 className="h-4 w-4 text-amber-700" /> : null}
-                          {spot.type === '酒店' ? <Wallet className="h-4 w-4 text-amber-700" /> : null}
-                          <strong className="text-sm">{spot.name}</strong>
+                    <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
+                      {dayPlan.spots.map((spot) => (
+                        <div key={`${dayPlan.day}-${spot.time}-${spot.name}`} className="w-[78%] shrink-0 rounded-[24px] bg-white p-4 shadow-sm">
+                          {spot.imageUrl ? (
+                            <img src={spot.imageUrl} alt={spot.name} className="mb-4 h-32 w-full rounded-2xl object-cover" loading="lazy" />
+                          ) : null}
+                          <div className="flex items-center gap-2 text-stone-900">
+                            {spot.type === '景点' ? <Landmark className="h-4 w-4 text-amber-700" /> : null}
+                            {spot.type === '交通' ? <Compass className="h-4 w-4 text-amber-700" /> : null}
+                            {spot.type === '餐饮' ? <Clock3 className="h-4 w-4 text-amber-700" /> : null}
+                            {spot.type === '酒店' ? <Wallet className="h-4 w-4 text-amber-700" /> : null}
+                            <strong className="text-base leading-6">{spot.name}</strong>
+                          </div>
+                          <p className="mt-2 text-sm font-semibold text-stone-500">{spot.time}</p>
+                          <p className="mt-3 text-sm leading-7 text-stone-500">{spot.note}</p>
+                          {spot.cost ? <p className="mt-3 text-sm font-semibold text-stone-800">预估费用 ¥{spot.cost}</p> : null}
                         </div>
-                        <p className="mt-1 text-[11px] font-semibold text-stone-500">{spot.time}</p>
-                        <p className="mt-2 text-xs leading-6 text-stone-500">{spot.note}</p>
-                        {spot.cost ? <p className="mt-2 text-[11px] font-medium text-stone-700">预估费用 ¥{spot.cost}</p> : null}
-                      </div>
-                    ))}
-                  </div>
-                </article>
+                      ))}
+                    </div>
+                  </article>
+                  )
+                })()
               ))}
+              <button
+                type="button"
+                onClick={() => goToDailyDay(-1)}
+                className="absolute left-0 top-0 z-40 flex h-full w-16 items-center justify-start bg-transparent pl-1 text-stone-900/55 transition hover:text-stone-950"
+                aria-label="上一天行程"
+                title="上一天行程"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                  <ChevronLeft className="h-5 w-5" />
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => goToDailyDay(1)}
+                className="absolute right-0 top-0 z-40 flex h-full w-16 items-center justify-end bg-transparent pr-1 text-stone-900/55 transition hover:text-stone-950"
+                aria-label="下一天行程"
+                title="下一天行程"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                  <ChevronRight className="h-5 w-5" />
+                </span>
+              </button>
+              <div className="absolute bottom-3 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
+                {plan.dayPlans.map((dayPlan) => (
+                  <button
+                    key={dayPlan.day}
+                    type="button"
+                    onClick={() => handleDailyDayChange(dayPlan.day)}
+                    className={cn('h-1.5 rounded-full transition-all', dayPlan.day === activeDailyDay ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-300')}
+                    aria-label={`切换到 Day ${dayPlan.day}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         ) : (
