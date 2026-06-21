@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import VoyaAvatar from '@/components/common/VoyaAvatar'
 import BottomTabs from '@/components/layout/BottomTabs'
 import { cn } from '@/lib/utils'
 
@@ -14,9 +15,61 @@ type PhoneShellProps = {
   children: ReactNode
 }
 
+type VoyaPeek = {
+  id: number
+  x: number
+  y: number
+}
+
+const interactiveSelector = [
+  'button',
+  'a',
+  '[role="button"]',
+  'article',
+  'section',
+  'img',
+  'input',
+  'textarea',
+  'select',
+  'li[class*="rounded"]',
+  'p[class*="rounded"]',
+  'span[class*="rounded"]',
+  'div[class*="rounded"]',
+].join(',')
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
 export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
   const normalizedPath = currentPath === '/' ? '/' : currentPath.replace(/\/+$/, '')
   const isCallMode = normalizedPath === '/call'
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [voyaPeek, setVoyaPeek] = useState<VoyaPeek | null>(null)
+
+  useEffect(() => {
+    if (!voyaPeek) return
+    const timer = window.setTimeout(() => setVoyaPeek(null), 1900)
+    return () => window.clearTimeout(timer)
+  }, [voyaPeek])
+
+  const showVoyaPeek = (event: PointerEvent<HTMLDivElement>) => {
+    const root = rootRef.current
+    const target = event.target instanceof HTMLElement ? event.target : null
+    if (!root || !target) return
+    if (target.closest('.voya-peek-popover')) return
+
+    const module = target.closest(interactiveSelector)
+    if (!(module instanceof HTMLElement) || !root.contains(module) || module === root) return
+
+    const moduleRect = module.getBoundingClientRect()
+    const rootRect = root.getBoundingClientRect()
+    if (moduleRect.width < 18 || moduleRect.height < 18) return
+
+    setVoyaPeek({
+      id: Date.now(),
+      x: clamp(moduleRect.right - rootRect.left - 72, 8, rootRect.width - 126),
+      y: clamp(moduleRect.top - rootRect.top - 26, 8, rootRect.height - 112),
+    })
+  }
 
   return (
     <div className="relative mx-auto flex h-[860px] w-[390px] flex-col rounded-[44px] border-[10px] border-stone-900 bg-[#f7f3ec] p-2 shadow-[0_35px_80px_rgba(43,31,16,0.34)] ring-1 ring-white/40">
@@ -29,11 +82,28 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
         <span>5G</span>
       </div>
       <div className="relative flex-1 overflow-hidden px-2 pb-2">
-        <div className="micro-motion-root flex h-full flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[#f9f5ef] shadow-inner">
+        <div
+          ref={rootRef}
+          onPointerDownCapture={showVoyaPeek}
+          className="micro-motion-root relative flex h-full flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[#f9f5ef] shadow-inner"
+        >
           <div className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4', isCallMode && 'overflow-hidden px-0 pb-0 pt-0')}>{children}</div>
           {!isCallMode ? (
             <div className="px-3 pb-3 pt-1">
               <BottomTabs />
+            </div>
+          ) : null}
+          {voyaPeek ? (
+            <div
+              key={voyaPeek.id}
+              className="voya-peek-popover pointer-events-none absolute z-[90] flex items-start gap-1.5"
+              style={{ left: voyaPeek.x, top: voyaPeek.y }}
+              aria-hidden="true"
+            >
+              <VoyaAvatar state="greeting" size="peek" className="voya-peek-wave" />
+              <span className="mt-1 rounded-full bg-stone-950/82 px-2.5 py-1 text-[10px] font-medium text-white shadow-lg backdrop-blur">
+                Hi~
+              </span>
             </div>
           ) : null}
         </div>

@@ -130,6 +130,14 @@ div::-webkit-scrollbar-thumb {
   animation: voya-call-speaking 1.15s ease-in-out infinite;
 }
 
+.voya-peek-popover {
+  animation: voya-peek-popover 1.9s ease both;
+}
+
+.voya-peek-wave {
+  animation: voya-peek-wave 1.05s ease-in-out infinite;
+}
+
 @keyframes voya-call-float {
   0%,
   100% {
@@ -160,6 +168,45 @@ div::-webkit-scrollbar-thumb {
 
   50% {
     transform: translateY(-8px) rotate(0.35deg) scale(1.018);
+  }
+}
+
+@keyframes voya-peek-popover {
+  0% {
+    opacity: 0;
+    scale: 0.72;
+    translate: 10px -4px;
+  }
+
+  14% {
+    opacity: 1;
+    scale: 1.05;
+    translate: 0 0;
+  }
+
+  78% {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 0.9;
+    translate: 8px -6px;
+  }
+}
+
+@keyframes voya-peek-wave {
+  0%,
+  100% {
+    rotate: -2deg;
+    scale: 1;
+  }
+
+  50% {
+    rotate: 2deg;
+    scale: 1.035;
   }
 }
 
