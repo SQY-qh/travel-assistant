@@ -11,6 +11,15 @@ const shanghaiImages = {
   astorLobby: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Astor_house_hotel_lobby.jpg/1280px-Astor_house_hotel_lobby.jpg',
 }
 
+const hotelRoomImages = {
+  radissonRoom: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Hotel_room_interior_at_hotel_Radisson_Blu_Oulu.jpg/960px-Hotel_room_interior_at_hotel_Radisson_Blu_Oulu.jpg',
+  cityLodgeRoom: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Interior_of_a_room_at_City_Lodge_OR_Tambo_Airport_hotel_February_2025.jpg/960px-Interior_of_a_room_at_City_Lodge_OR_Tambo_Airport_hotel_February_2025.jpg',
+  heritageRoom: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/La_Coupole_Hotel%2C_Quito_%28interior%29_pic.a_8175.jpg/960px-La_Coupole_Hotel%2C_Quito_%28interior%29_pic.a_8175.jpg',
+  heritageSuite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/La_Coupole_Hotel%2C_Quito_%28interior%29_pic.b432a.jpg/960px-La_Coupole_Hotel%2C_Quito_%28interior%29_pic.b432a.jpg',
+  designRoom: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/La_Coupole_Hotel%2C_Quito_%28interior%29_pic.g1a.jpg/960px-La_Coupole_Hotel%2C_Quito_%28interior%29_pic.g1a.jpg',
+  lounge: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Lobby_lounge_of_Amantaka_Suite_Amantaka_luxury_Resort_%26_Hotel_Luang_Prabang_Laos.jpg/960px-Lobby_lounge_of_Amantaka_Suite_Amantaka_luxury_Resort_%26_Hotel_Luang_Prabang_Laos.jpg',
+}
+
 const shanghaiRecommendation = {
   id: 'local-shanghai-2026-07-01',
   city: '上海',
@@ -150,6 +159,11 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
       priceHint: '4 晚约 ¥3280，适合首晚外滩与返程转场',
       reason: '去外滩、武康路、静安和虹桥都比较均衡，情侣 5 天游可以减少换乘焦虑。',
       imageUrl: shanghaiImages.radisson,
+      roomImages: [
+        { url: shanghaiImages.radisson, label: '酒店外观' },
+        { url: hotelRoomImages.radissonRoom, label: '舒适客房参考' },
+        { url: hotelRoomImages.cityLodgeRoom, label: '大床房参考' },
+      ],
       imageCredit: 'Wikimedia Commons',
     },
     {
@@ -158,6 +172,11 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
       priceHint: '4 晚约 ¥3600-4400，适合想把夜景体验拉满',
       reason: '首晚和最后一晚都能步行看江景，适合展示时做“氛围感住宿”参考。',
       imageUrl: shanghaiImages.peaceHotel,
+      roomImages: [
+        { url: shanghaiImages.peaceHotel, label: '外滩建筑' },
+        { url: hotelRoomImages.heritageRoom, label: '复古客房参考' },
+        { url: hotelRoomImages.heritageSuite, label: '套房角度参考' },
+      ],
       imageCredit: 'Wikimedia Commons',
     },
     {
@@ -166,6 +185,11 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
       priceHint: '4 晚约 ¥3000-3400，性价比和城市感更平衡',
       reason: '离苏河湾、北外滩和人民广场都近，预算更稳，雨天也容易切到商场和展馆。',
       imageUrl: shanghaiImages.astorLobby,
+      roomImages: [
+        { url: shanghaiImages.astorLobby, label: '大堂空间' },
+        { url: hotelRoomImages.designRoom, label: '设计客房参考' },
+        { url: hotelRoomImages.lounge, label: '休息区参考' },
+      ],
       imageCredit: 'Wikimedia Commons',
     },
   ],

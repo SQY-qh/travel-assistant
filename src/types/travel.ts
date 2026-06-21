@@ -185,6 +185,10 @@ export type HotelVisualOption = {
   priceHint: string
   reason: string
   imageUrl: string
+  roomImages?: {
+    url: string
+    label: string
+  }[]
   imageCredit?: string
 }
 

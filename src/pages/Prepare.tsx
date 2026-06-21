@@ -310,12 +310,14 @@ export default function Prepare() {
                   <Hotel className="h-4 w-4 text-amber-700" />
                   酒店参考
                 </div>
-                <div className="relative h-[360px] overflow-hidden">
+                <div className="relative h-[500px] overflow-hidden">
                   {hotelOptions.map((hotel, index) => {
                     const forwardOffset = (index - activeHotelIndex + hotelOptions.length) % hotelOptions.length
                     const stackOffset = forwardOffset > hotelOptions.length / 2 ? forwardOffset - hotelOptions.length : forwardOffset
                     const isVisible = Math.abs(stackOffset) <= 1
                     const isActive = index === activeHotelIndex
+                    const roomGallery = hotel.roomImages?.length ? hotel.roomImages : [{ url: hotel.imageUrl, label: '酒店图片' }]
+                    const sideGallery = roomGallery.slice(1, 3)
 
                     return (
                       <article
@@ -331,8 +333,50 @@ export default function Prepare() {
                         }}
                         aria-hidden={!isVisible}
                       >
-                        <img src={hotel.imageUrl} alt={hotel.name} className="h-36 w-full object-cover" loading="lazy" />
-                        <div className="px-4 py-4">
+                        <div className="p-2">
+                          <div className="grid grid-cols-[1.45fr_0.85fr] gap-2">
+                            <div className="relative overflow-hidden rounded-[20px]">
+                              <img
+                                src={roomGallery[0].url}
+                                alt={`${hotel.name}${roomGallery[0].label}`}
+                                className="h-40 w-full object-cover"
+                                loading="lazy"
+                              />
+                              <span className="absolute bottom-2 left-2 rounded-full bg-stone-950/75 px-2.5 py-1 text-[10px] text-white backdrop-blur">
+                                {roomGallery[0].label}
+                              </span>
+                            </div>
+                            <div className="grid gap-2">
+                              {sideGallery.map((image) => (
+                                <div key={`${hotel.name}-${image.label}`} className="relative overflow-hidden rounded-[18px] bg-stone-100">
+                                  <img
+                                    src={image.url}
+                                    alt={`${hotel.name}${image.label}`}
+                                    className="h-[76px] w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                  <span className="absolute bottom-1.5 left-1.5 rounded-full bg-white/85 px-2 py-0.5 text-[9px] text-stone-700 shadow-sm">
+                                    {image.label}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="px-4 pb-4 pt-2">
+                          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+                            {roomGallery.map((image) => (
+                              <div key={`${hotel.name}-thumb-${image.label}`} className="min-w-[116px] overflow-hidden rounded-2xl bg-stone-50 shadow-sm">
+                                <img
+                                  src={image.url}
+                                  alt={`${hotel.name}${image.label}缩略图`}
+                                  className="h-14 w-full object-cover"
+                                  loading="lazy"
+                                />
+                                <p className="px-2 py-1.5 text-[10px] font-medium text-stone-600">{image.label}</p>
+                              </div>
+                            ))}
+                          </div>
                           <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{hotel.area}</p>
                           <h3 className="mt-1 text-base font-semibold text-stone-950">{hotel.name}</h3>
                           <p className="mt-2 text-xs leading-6 text-stone-600">{hotel.reason}</p>
