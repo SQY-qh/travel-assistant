@@ -210,19 +210,7 @@ export default function Prepare() {
       {localBookingComparison ? (
         <SectionCard title="前后一天预订比价" eyebrow="Booking Comparison">
           <div className="space-y-3">
-            <article className="rounded-2xl bg-stone-900 px-4 py-4 text-white shadow-lg">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">{localBookingComparison.title}</p>
-              <h2 className="mt-2 text-sm font-semibold">推荐：{localBookingComparison.options.find((item) => item.id === localBookingComparison.recommendedOptionId)?.label}</h2>
-              <p className="mt-3 text-xs leading-6 text-white/75">{localBookingComparison.summary}</p>
-              <p className="mt-2 text-[11px] leading-5 text-white/55">{localBookingComparison.baseline}</p>
-              <div className="mt-3 space-y-2">
-                {localBookingComparison.insights.map((insight) => (
-                  <p key={insight} className="rounded-2xl bg-white/10 px-3 py-2 text-[11px] leading-5 text-white/70">{insight}</p>
-                ))}
-              </div>
-            </article>
-
-            <div className="relative h-[420px] overflow-hidden">
+            <div className="relative h-[500px] overflow-hidden">
               {bookingOptions.map((option, index) => {
                 const forwardOffset = (index - activeBookingIndex + bookingOptions.length) % bookingOptions.length
                 const stackOffset = forwardOffset > bookingOptions.length / 2 ? forwardOffset - bookingOptions.length : forwardOffset
@@ -263,9 +251,18 @@ export default function Prepare() {
                       <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Hotel className="mb-1 h-3.5 w-3.5 text-amber-700" />酒店总价：{formatMoney(option.hotelTotal)}</p>
                       <p className="rounded-2xl bg-white px-3 py-2 font-semibold text-stone-900 shadow-sm">机酒合计：{formatMoney(option.totalByFlight)}</p>
                     </div>
+                    <p className="mt-3 text-xs leading-6 text-stone-600">{localBookingComparison.summary}</p>
+                    <p className="mt-2 text-[11px] leading-5 text-stone-500">{localBookingComparison.baseline}</p>
+                    {isActive ? (
+                      <div className="mt-3 grid grid-cols-1 gap-2">
+                        {localBookingComparison.insights.slice(0, 2).map((insight) => (
+                          <p key={insight} className="rounded-2xl bg-white/80 px-3 py-2 text-[11px] leading-5 text-stone-500 shadow-sm">{insight}</p>
+                        ))}
+                      </div>
+                    ) : null}
                     <p className="mt-4 text-xs leading-6 text-stone-600">{option.recommendation}</p>
                     <div className="mt-3 space-y-2">
-                      {option.bookingTips.map((tip) => (
+                      {option.bookingTips.slice(0, 2).map((tip) => (
                         <p key={tip} className="rounded-2xl bg-white/80 px-3 py-2 text-[11px] leading-5 text-stone-500 shadow-sm">{tip}</p>
                       ))}
                     </div>
