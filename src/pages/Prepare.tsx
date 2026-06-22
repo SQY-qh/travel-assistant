@@ -248,7 +248,7 @@ export default function Prepare() {
       {localBookingComparison ? (
         <SectionCard title="前后一天预订比价" eyebrow="Booking Comparison">
           <div className="space-y-3">
-            <div className="relative h-[500px] overflow-hidden">
+            <div className="relative h-[570px] overflow-hidden">
               {bookingOptions.map((option, index) => {
                 const forwardOffset = (index - activeBookingIndex + bookingOptions.length) % bookingOptions.length
                 const stackOffset = forwardOffset > bookingOptions.length / 2 ? forwardOffset - bookingOptions.length : forwardOffset
@@ -284,10 +284,25 @@ export default function Prepare() {
                       </div>
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] text-stone-600">
-                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Plane className="mb-1 h-3.5 w-3.5 text-amber-700" />机票两人：{formatMoney(option.flightTotal)}</p>
-                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Ticket className="mb-1 h-3.5 w-3.5 text-amber-700" />高铁两人：{formatMoney(option.trainTotal)}</p>
-                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm"><Hotel className="mb-1 h-3.5 w-3.5 text-amber-700" />酒店总价：{formatMoney(option.hotelTotal)}</p>
-                      <p className="rounded-2xl bg-white px-3 py-2 font-semibold text-stone-900 shadow-sm">机酒合计：{formatMoney(option.totalByFlight)}</p>
+                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm">
+                        <Plane className="mb-1 h-3.5 w-3.5 text-amber-700" />
+                        机票两人：{formatMoney(option.flightTotal)}
+                        {option.flightPlan ? <span className="mt-1 block text-[10px] leading-4 text-stone-400">{option.flightPlan}</span> : null}
+                      </p>
+                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm">
+                        <Ticket className="mb-1 h-3.5 w-3.5 text-amber-700" />
+                        高铁两人：{formatMoney(option.trainTotal)}
+                        {option.trainPlan ? <span className="mt-1 block text-[10px] leading-4 text-stone-400">{option.trainPlan}</span> : null}
+                      </p>
+                      <p className="rounded-2xl bg-white px-3 py-2 shadow-sm">
+                        <Hotel className="mb-1 h-3.5 w-3.5 text-amber-700" />
+                        酒店总价：{formatMoney(option.hotelTotal)}
+                        {option.hotelPlan ? <span className="mt-1 block text-[10px] leading-4 text-stone-400">{option.hotelPlan}</span> : null}
+                      </p>
+                      <p className="rounded-2xl bg-white px-3 py-2 font-semibold text-stone-900 shadow-sm">
+                        机酒合计：{formatMoney(option.totalByFlight)}
+                        {option.sourceNote ? <span className="mt-1 block text-[10px] font-normal leading-4 text-stone-400">{option.sourceNote}</span> : null}
+                      </p>
                     </div>
                     <p className="mt-3 text-xs leading-6 text-stone-600">{localBookingComparison.summary}</p>
                     <p className="mt-2 text-[11px] leading-5 text-stone-500">{localBookingComparison.baseline}</p>
@@ -348,7 +363,7 @@ export default function Prepare() {
                   <Hotel className="h-4 w-4 text-amber-700" />
                   酒店参考
                 </div>
-                <div className="relative h-[500px] overflow-hidden">
+                <div className="relative h-[530px] overflow-hidden">
                   {hotelOptions.map((hotel, index) => {
                     const forwardOffset = (index - activeHotelIndex + hotelOptions.length) % hotelOptions.length
                     const stackOffset = forwardOffset > hotelOptions.length / 2 ? forwardOffset - hotelOptions.length : forwardOffset
@@ -404,24 +419,20 @@ export default function Prepare() {
                           </div>
                         </div>
                         <div className="px-4 pb-4 pt-2">
-                          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-                            {roomGallery.map((image) => (
-                              <div key={`${hotel.name}-thumb-${image.label}`} className="min-w-[116px] overflow-hidden rounded-2xl bg-stone-50 shadow-sm">
-                                <img
-                                  src={image.url}
-                                  alt={`${hotel.name}${image.label}缩略图`}
-                                  className="h-14 w-full object-cover"
-                                  loading="eager"
-                                  decoding="async"
-                                />
-                                <p className="px-2 py-1.5 text-[10px] font-medium text-stone-600">{image.label}</p>
-                              </div>
-                            ))}
-                          </div>
                           <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{hotel.area}</p>
                           <h3 className="mt-1 text-base font-semibold text-stone-950">{hotel.name}</h3>
                           <p className="mt-2 text-xs leading-6 text-stone-600">{hotel.reason}</p>
                           <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-medium leading-5 text-amber-800">{hotel.priceHint}</p>
+                          {hotel.sourceUrl ? (
+                            <a
+                              href={hotel.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-flex rounded-full bg-stone-100 px-3 py-1.5 text-[10px] font-medium text-stone-600 transition hover:bg-stone-200"
+                            >
+                              官网/平台查询
+                            </a>
+                          ) : null}
                         </div>
                       </article>
                     )

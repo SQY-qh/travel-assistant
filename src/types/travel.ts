@@ -190,6 +190,7 @@ export type HotelVisualOption = {
     label: string
   }[]
   imageCredit?: string
+  sourceUrl?: string
 }
 
 export type BookingComparisonOption = {
@@ -205,6 +206,10 @@ export type BookingComparisonOption = {
   totalByTrain: number
   recommendation: string
   bookingTips: string[]
+  flightPlan?: string
+  trainPlan?: string
+  hotelPlan?: string
+  sourceNote?: string
 }
 
 export type BookingComparison = {
