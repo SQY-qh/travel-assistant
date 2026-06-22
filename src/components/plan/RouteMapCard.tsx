@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Map, MapPinned } from 'lucide-react'
 import { fetchAmapRoute } from '@/services/amapWebService'
 import { geocodeAmap, hasAmapKey, loadAmap } from '@/services/providers/amapProvider'
-import type { DayPlan } from '@/types/travel'
+import type { DayPlan, DaySpot } from '@/types/travel'
 
 type RouteMapCardProps = {
   dayPlans: DayPlan[]
@@ -18,12 +18,16 @@ type RoutePoint = {
   lng: number
   lat: number
   name: string
+  spotIndex: number
 }
 
 type RouteSegment = [number, number][]
 
 type AMapLayer = unknown
 type AMapOverlay = unknown
+type AMapMarker = AMapOverlay & {
+  on?: (event: string, handler: () => void) => void
+}
 type AMapInstance = {
   setMapStyle?: (style: string) => void
   setLayers?: (layers: AMapLayer[]) => void
@@ -38,18 +42,19 @@ type AMapNamespace = {
     RoadNet?: new (options: Record<string, unknown>) => AMapLayer
   }
   Map: new (container: HTMLDivElement, options: Record<string, unknown>) => AMapInstance
-  Marker: new (options: Record<string, unknown>) => AMapOverlay
+  Marker: new (options: Record<string, unknown>) => AMapMarker
   Polyline: new (options: Record<string, unknown>) => AMapOverlay
 }
 
-const buildSyntheticPoints = (center: [number, number], count: number): RoutePoint[] => {
-  const total = Math.max(2, count)
-  return Array.from({ length: total }, (_, index) => {
+const buildSyntheticPoints = (center: [number, number], spots: DaySpot[]): RoutePoint[] => {
+  const total = Math.max(2, spots.length)
+  return Array.from({ length: spots.length }, (_, index) => {
     const step = index - (total - 1) / 2
     return {
       lng: Number((center[0] + step * 0.025).toFixed(6)),
       lat: Number((center[1] + ((index % 2 === 0 ? 1 : -1) * 0.015 + step * 0.008)).toFixed(6)),
-      name: `route-${index + 1}`,
+      name: spots[index]?.name ?? `route-${index + 1}`,
+      spotIndex: index,
     }
   })
 }
@@ -64,6 +69,29 @@ const buildBaseLayers = (AMap: AMapNamespace) => {
   return layers
 }
 
+const buildMarkerContent = (index: number, active: boolean) => `
+  <button
+    type="button"
+    aria-label="路线节点 ${index + 1}"
+    style="
+      width:${active ? 30 : 26}px;
+      height:${active ? 30 : 26}px;
+      border-radius:999px;
+      border:2px solid white;
+      background:${active ? '#171412' : '#d97706'};
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:800;
+      box-shadow:0 8px 18px rgba(66,50,24,.28);
+      transform:translate(-50%, -50%);
+      cursor:pointer;
+    "
+  >${index + 1}</button>
+`
+
 export default function RouteMapCard({ dayPlans, center, destination, offline = false, activeDay, onActiveDayChange, showNodeList = true }: RouteMapCardProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
@@ -72,6 +100,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
   const [resolvedCenter, setResolvedCenter] = useState(center)
   const [resolvedPoints, setResolvedPoints] = useState<RoutePoint[]>([])
   const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([])
+  const [selectedSpotIndex, setSelectedSpotIndex] = useState(0)
   const selectedDay = activeDay ?? internalActiveDay
   const setSelectedDay = useCallback((day: number) => {
     if (activeDay === undefined) {
@@ -84,10 +113,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
     [selectedDay, dayPlans],
   )
   const timelineSpots = useMemo(() => activeDayPlan?.spots ?? [], [activeDayPlan])
-  const explicitPoints = useMemo(
-    () => timelineSpots.filter((spot) => typeof spot.lng === 'number' && typeof spot.lat === 'number'),
-    [timelineSpots],
-  )
+  const selectedSpot = timelineSpots[selectedSpotIndex] ?? timelineSpots[0]
   const useOfflineTimeline = offline || !hasAmapKey()
 
   useEffect(() => {
@@ -95,6 +121,16 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
       setSelectedDay(dayPlans[0]?.day ?? 1)
     }
   }, [dayPlans, selectedDay, setSelectedDay])
+
+  useEffect(() => {
+    setSelectedSpotIndex(0)
+  }, [selectedDay])
+
+  useEffect(() => {
+    if (selectedSpotIndex >= timelineSpots.length) {
+      setSelectedSpotIndex(0)
+    }
+  }, [selectedSpotIndex, timelineSpots.length])
 
   useEffect(() => {
     let cancelled = false
@@ -109,9 +145,9 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
 
     const resolveGeometry = async () => {
       setIsResolving(true)
-      const immediateFallback = buildSyntheticPoints(center, Math.min(Math.max(timelineSpots.length, 2), 6))
+      const immediateFallback = buildSyntheticPoints(center, timelineSpots)
       setResolvedCenter(center)
-      setResolvedPoints(explicitPoints.length > 0 ? explicitPoints.map((spot) => ({ lng: spot.lng, lat: spot.lat, name: spot.name })) : immediateFallback)
+      setResolvedPoints(timelineSpots.length > 0 ? immediateFallback : [])
       setRouteSegments([])
 
       const destinationCenter = (await geocodeAmap(destination)) ?? center
@@ -119,23 +155,27 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
 
       setResolvedCenter(destinationCenter)
 
-      if (explicitPoints.length > 0) {
-        setResolvedPoints(explicitPoints.map((spot) => ({ lng: spot.lng, lat: spot.lat, name: spot.name })))
+      if (timelineSpots.length === 0) {
+        setResolvedPoints([])
         setIsResolving(false)
         return
       }
 
       const geocoded = await Promise.all(
-        timelineSpots.slice(0, 6).map(async (spot) => {
+        timelineSpots.map(async (spot, index) => {
+          if (typeof spot.lng === 'number' && typeof spot.lat === 'number') {
+            return { lng: spot.lng, lat: spot.lat, name: spot.name, spotIndex: index } satisfies RoutePoint
+          }
           const query = `${destination}${spot.name}`.replace(/\s+/g, '')
           const point = await geocodeAmap(query)
-          return point ? { lng: point[0], lat: point[1], name: spot.name } : null
+          return point ? ({ lng: point[0], lat: point[1], name: spot.name, spotIndex: index } satisfies RoutePoint) : null
         }),
       )
       if (cancelled) return
 
-      const usable = geocoded.filter((item): item is RoutePoint => Boolean(item))
-      setResolvedPoints(usable.length >= 2 ? usable : buildSyntheticPoints(destinationCenter, Math.min(Math.max(timelineSpots.length, 2), 6)))
+      const fallbackPoints = buildSyntheticPoints(destinationCenter, timelineSpots)
+      const completePoints = timelineSpots.map((_, index) => geocoded[index] ?? fallbackPoints[index]).filter((point): point is RoutePoint => Boolean(point))
+      setResolvedPoints(completePoints)
       setIsResolving(false)
     }
 
@@ -144,7 +184,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
     return () => {
       cancelled = true
     }
-  }, [center, destination, explicitPoints, timelineSpots, useOfflineTimeline])
+  }, [center, destination, timelineSpots, useOfflineTimeline])
 
   useEffect(() => {
     let cancelled = false
@@ -215,11 +255,15 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
       }
 
       const markers = resolvedPoints.map(
-        (spot) =>
-          new AMap.Marker({
+        (spot) => {
+          const marker = new AMap.Marker({
             position: [spot.lng, spot.lat],
             title: spot.name,
-          }),
+            content: buildMarkerContent(spot.spotIndex, spot.spotIndex === selectedSpotIndex),
+          })
+          marker.on?.('click', () => setSelectedSpotIndex(spot.spotIndex))
+          return marker
+        },
       )
 
       map.add(markers)
@@ -243,7 +287,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
       disposed = true
       if (map) map.destroy()
     }
-  }, [resolvedCenter, resolvedPoints, routeSegments, useOfflineTimeline])
+  }, [resolvedCenter, resolvedPoints, routeSegments, selectedSpotIndex, useOfflineTimeline])
 
   if (useOfflineTimeline) {
     return (
@@ -326,6 +370,21 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
                 : '高德底图已显示，正在按推荐节点绘制城市动线。'
             : '正在加载地图资源...'}
         </p>
+        {selectedSpot ? (
+          <div className="rounded-[20px] border border-amber-100 bg-amber-50/70 px-3 py-3 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 text-[10px] font-semibold text-white">
+                {selectedSpotIndex + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-stone-900">{selectedSpot.name}</p>
+                <p className="text-[11px] text-stone-500">{selectedSpot.time} · {selectedSpot.type}</p>
+              </div>
+            </div>
+            <p className="text-[11px] leading-5 text-stone-600">{selectedSpot.note}</p>
+            {selectedSpot.cost ? <p className="mt-2 text-[11px] font-semibold text-stone-800">预估费用 ¥{selectedSpot.cost}</p> : null}
+          </div>
+        ) : null}
         {showNodeList ? (
           <div className="rounded-[20px] bg-stone-50 px-3 py-3">
             <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
