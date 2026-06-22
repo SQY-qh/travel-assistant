@@ -1,6 +1,9 @@
 import { selectOutfitsForTrip } from '@/data/outfits'
 import { createEmptyProfile, type BookingComparison, type ContingencyPlan, type DayPlan, type SpotRecommendation, type TravelPlan, type TravelProfile } from '@/types/travel'
 
+const commonsImage = (fileName: string, width = 1280) =>
+  `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(fileName)}?width=${width}`
+
 const shanghaiImages = {
   bund: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Bund_at_night_%28with_Bund_Financial_Center%29.jpg/1280px-Bund_at_night_%28with_Bund_Financial_Center%29.jpg',
   wukang: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Wukang_Mansion%2C_Shanghai%2C_May_2016_01.JPG/1280px-Wukang_Mansion%2C_Shanghai%2C_May_2016_01.JPG',
@@ -9,6 +12,18 @@ const shanghaiImages = {
   radisson: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Radisson_Hotel_Shanghai.jpg/1280px-Radisson_Hotel_Shanghai.jpg',
   peaceHotel: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Peace_Hotel_%26_Bank_of_China_Building%2C_Shanghai.jpg/1280px-Peace_Hotel_%26_Bank_of_China_Building%2C_Shanghai.jpg',
   astorLobby: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Astor_house_hotel_lobby.jpg/1280px-Astor_house_hotel_lobby.jpg',
+  szxAirport: commonsImage("Shenzhen Bao'an International Airport Terminal 3 interior 20250412.jpg"),
+  hongqiaoStation: commonsImage('Shanghai Hongqiao Railway Station waiting hall.jpg'),
+  nanjingRoad: commonsImage('East Nanjing Pedestrian Shopping Street.jpg'),
+  northBund: commonsImage('Pudong CBD viewed from the North Bund in Shanghai.jpg'),
+  anfuRoad: commonsImage('A brunch spot at Anfu Rd.jpg'),
+  xujiahuiLibrary: commonsImage('徐家汇书院 05.jpg'),
+  shanghaiMuseum: commonsImage('Shanghai Museum East inside.jpg'),
+  suheBay: commonsImage('上海苏河湾万象天地.png'),
+  juluRoad: commonsImage('Lane 852 Julu Rd. Shanghai.JPG'),
+  yuyuanRoad: commonsImage('愚园路1086号住宅.jpg'),
+  lujiazui: commonsImage('Lujiazui-towers-01.jpg'),
+  pudongArtMuseum: commonsImage('浦东美术馆.jpg'),
 }
 
 const hotelRoomImages = {
@@ -40,11 +55,11 @@ const dayPlans: DayPlan[] = [
     title: '抵达上海与外滩夜景开场',
     routeSummary: '深圳 -> 上海虹桥 / 浦东 -> 人民广场酒店 -> 南京东路 -> 外滩 -> 北外滩',
     spots: [
-      { time: '08:20', name: '深圳宝安机场 / 深圳北站出发', type: '交通', note: '优先选上午抵达上海的航班；若选高铁，建议 G100/G818 类早班，抵达后直接进市区。情侣行李控制在 20 寸箱，地铁转场更轻。', cost: 2100 },
+      { time: '08:20', name: '深圳宝安机场 / 深圳北站出发', type: '交通', note: '优先选上午抵达上海的航班；若选高铁，建议 G100/G818 类早班，抵达后直接进市区。情侣行李控制在 20 寸箱，地铁转场更轻。', imageUrl: shanghaiImages.szxAirport, cost: 2100 },
       { time: '12:30', name: '人民广场 / 南京东路酒店入住', address: '人民广场、南京东路、苏州河沿线', type: '酒店', note: '建议住人民广场到南京东路之间，去外滩、武康路、迪士尼和虹桥都比较均衡；预算按 4 晚 ¥3000-3600 控制。', imageUrl: shanghaiImages.radisson, lat: 31.2355, lng: 121.4752, cost: 3200 },
-      { time: '15:30', name: '南京东路步行街', type: '景点', note: '首日下午只做轻量城市适应，逛第一食品商店、和平饭店外观、外滩源一带；人多时走支路到圆明园路更舒服。', imageUrl: shanghaiImages.peaceHotel, lat: 31.2397, lng: 121.4902, cost: 0 },
+      { time: '15:30', name: '南京东路步行街', type: '景点', note: '首日下午只做轻量城市适应，逛第一食品商店、和平饭店外观、外滩源一带；人多时走支路到圆明园路更舒服。', imageUrl: shanghaiImages.nanjingRoad, lat: 31.2397, lng: 121.4902, cost: 0 },
       { time: '18:00', name: '外滩日落到蓝调时刻', type: '景点', note: '情侣照建议 18:30 前到黄浦公园附近占位，先拍万国建筑群，再等陆家嘴亮灯；晚餐不要排太远，避免错过夜景。', imageUrl: shanghaiImages.bund, lat: 31.2405, lng: 121.4909, cost: 0 },
-      { time: '20:00', name: '北外滩滨江 / 乍浦路桥', type: '景点', note: '外滩人多时转去北外滩，机位更开阔；乍浦路桥适合拍东方明珠和苏州河夜色。', imageUrl: shanghaiImages.bund, lat: 31.2503, lng: 121.4985, cost: 0 },
+      { time: '20:00', name: '北外滩滨江 / 乍浦路桥', type: '景点', note: '外滩人多时转去北外滩，机位更开阔；乍浦路桥适合拍东方明珠和苏州河夜色。', imageUrl: shanghaiImages.northBund, lat: 31.2503, lng: 121.4985, cost: 0 },
     ],
   },
   {
@@ -53,9 +68,9 @@ const dayPlans: DayPlan[] = [
     routeSummary: '武康大楼 -> 安福路 -> 湖南路 -> 徐家汇书院 -> 衡山路晚餐',
     spots: [
       { time: '09:00', name: '武康大楼', type: '景点', note: '早上 9 点前人相对少，拍完经典转角不要久停；之后沿武康路向安福路走，街区比单点更值得慢逛。', imageUrl: shanghaiImages.wukang, lat: 31.2103, lng: 121.4376, cost: 0 },
-      { time: '10:30', name: '安福路与话剧艺术中心周边', type: '景点', note: '适合咖啡、买小众香氛和拍街景；如果太阳太晒，就把户外压缩到 60 分钟，转进店内休息。', imageUrl: shanghaiImages.wukang, lat: 31.2152, lng: 121.4442, cost: 120 },
+      { time: '10:30', name: '安福路与话剧艺术中心周边', type: '景点', note: '适合咖啡、买小众香氛和拍街景；如果太阳太晒，就把户外压缩到 60 分钟，转进店内休息。', imageUrl: shanghaiImages.anfuRoad, lat: 31.2152, lng: 121.4442, cost: 120 },
       { time: '13:00', name: '湖南路 / 永福路午餐', type: '餐饮', note: '推荐选 brunch 或本帮菜小馆，避开热门网红店长队；两人午餐按 ¥220-300 预算。', lat: 31.2114, lng: 121.4446, cost: 260 },
-      { time: '15:00', name: '徐家汇书院', type: '景点', note: '下午最热时放室内，书院空间好拍，也能休整；若遇雨可延长到 2 小时。', imageUrl: shanghaiImages.wukang, lat: 31.1919, lng: 121.4399, cost: 0 },
+      { time: '15:00', name: '徐家汇书院', type: '景点', note: '下午最热时放室内，书院空间好拍，也能休整；若遇雨可延长到 2 小时。', imageUrl: shanghaiImages.xujiahuiLibrary, lat: 31.1919, lng: 121.4399, cost: 0 },
       { time: '18:30', name: '衡山路 / 建国西路晚餐', type: '餐饮', note: '晚上选有露台或低照度氛围的餐厅，适合情侣约会；晚餐按 ¥380-520 控制。', lat: 31.2041, lng: 121.4476, cost: 460 },
     ],
   },
@@ -64,11 +79,11 @@ const dayPlans: DayPlan[] = [
     title: '迪士尼一日或浦东替代线',
     routeSummary: '上海迪士尼度假区；若天气/体力变化则改陆家嘴 + 前滩太古里',
     spots: [
-      { time: '07:15', name: '出发前往上海迪士尼', type: '交通', note: '从市中心到迪士尼约 60-80 分钟。想玩热门项目建议早到；不追求全项目则 9:30 后入园更轻松。', cost: 80 },
+      { time: '07:15', name: '出发前往上海迪士尼', type: '交通', note: '从市中心到迪士尼约 60-80 分钟。想玩热门项目建议早到；不追求全项目则 9:30 后入园更轻松。', imageUrl: shanghaiImages.disney, cost: 80 },
       { time: '09:00', name: '上海迪士尼乐园', type: '景点', note: '情侣优先顺序：疯狂动物城热力追踪、创极速光轮、加勒比海盗、七个小矮人矿山车。只选 4-5 个重点，不必硬刷全园。', imageUrl: shanghaiImages.disney, lat: 31.144, lng: 121.657, cost: 1180 },
-      { time: '13:30', name: '园内午餐与降温休息', type: '餐饮', note: '中午避开排队和暴晒，选室内餐厅；带小风扇、雨衣和水杯，预算两人 ¥180-260。', lat: 31.144, lng: 121.657, cost: 220 },
+      { time: '13:30', name: '园内午餐与降温休息', type: '餐饮', note: '中午避开排队和暴晒，选室内餐厅；带小风扇、雨衣和水杯，预算两人 ¥180-260。', imageUrl: shanghaiImages.disney, lat: 31.144, lng: 121.657, cost: 220 },
       { time: '18:30', name: '城堡烟花 / 夜间巡游', type: '景点', note: '如果当日烟花开放，提前 45 分钟找位置；若雨天取消，改去迪士尼小镇晚餐后回酒店。', imageUrl: shanghaiImages.disney, lat: 31.144, lng: 121.657, cost: 0 },
-      { time: '21:30', name: '返回市区酒店', type: '交通', note: '回程排队明显，提前约车或接受地铁人流；第二天上午安排轻松一点。', cost: 120 },
+      { time: '21:30', name: '返回市区酒店', type: '交通', note: '回程排队明显，提前约车或接受地铁人流；第二天上午安排轻松一点。', imageUrl: shanghaiImages.hongqiaoStation, cost: 120 },
     ],
   },
   {
@@ -76,11 +91,11 @@ const dayPlans: DayPlan[] = [
     title: '博物馆、苏河湾与静安精致收尾',
     routeSummary: '上海博物馆东馆 / 人民广场馆 -> 苏河湾万象天地 -> 静安寺 -> 巨鹿路',
     spots: [
-      { time: '09:30', name: '上海博物馆', type: '景点', note: '按开放预约选择人民广场馆或东馆；重点看青铜、陶瓷、书画，不建议每层都硬逛。', lat: 31.2304, lng: 121.4707, cost: 0 },
+      { time: '09:30', name: '上海博物馆', type: '景点', note: '按开放预约选择人民广场馆或东馆；重点看青铜、陶瓷、书画，不建议每层都硬逛。', imageUrl: shanghaiImages.shanghaiMuseum, lat: 31.2304, lng: 121.4707, cost: 0 },
       { time: '12:30', name: '人民广场周边本帮菜', type: '餐饮', note: '可以安排上海菜午餐：响油鳝糊、葱油拌面、红烧肉少量尝试；两人预算 ¥220-320。', lat: 31.232, lng: 121.475, cost: 280 },
-      { time: '15:00', name: '苏河湾万象天地 / 天后宫桥', type: '景点', note: '下午走苏州河沿线，商场、河岸、历史建筑组合稳定；雨天也能在室内完成大部分体验。', imageUrl: shanghaiImages.jingan, lat: 31.2468, lng: 121.4716, cost: 0 },
+      { time: '15:00', name: '苏河湾万象天地 / 天后宫桥', type: '景点', note: '下午走苏州河沿线，商场、河岸、历史建筑组合稳定；雨天也能在室内完成大部分体验。', imageUrl: shanghaiImages.suheBay, lat: 31.2468, lng: 121.4716, cost: 0 },
       { time: '17:30', name: '静安寺外观与久光商圈', type: '景点', note: '傍晚去静安寺外观更有城市反差感；如果想购物，久光、芮欧、晶品都在步行范围。', imageUrl: shanghaiImages.jingan, lat: 31.223, lng: 121.4452, cost: 100 },
-      { time: '19:30', name: '巨鹿路 / 富民路晚餐小酒', type: '餐饮', note: '最后一晚安排轻松约会，不建议再跨浦东；可选 bistro、日料或酒吧，预算 ¥450-650。', lat: 31.2216, lng: 121.454, cost: 560 },
+      { time: '19:30', name: '巨鹿路 / 富民路晚餐小酒', type: '餐饮', note: '最后一晚安排轻松约会，不建议再跨浦东；可选 bistro、日料或酒吧，预算 ¥450-650。', imageUrl: shanghaiImages.juluRoad, lat: 31.2216, lng: 121.454, cost: 560 },
     ],
   },
   {
@@ -88,10 +103,10 @@ const dayPlans: DayPlan[] = [
     title: '愚园路慢逛与返程',
     routeSummary: '愚园路 -> 中山公园 / 龙之梦 -> 虹桥 / 浦东返程',
     spots: [
-      { time: '09:30', name: '愚园路城市更新街区', type: '景点', note: '最后一天不排重景点，适合咖啡、买伴手礼、补拍街景；比外滩更适合作为轻松收尾。', imageUrl: shanghaiImages.wukang, lat: 31.2209, lng: 121.4317, cost: 80 },
+      { time: '09:30', name: '愚园路城市更新街区', type: '景点', note: '最后一天不排重景点，适合咖啡、买伴手礼、补拍街景；比外滩更适合作为轻松收尾。', imageUrl: shanghaiImages.yuyuanRoad, lat: 31.2209, lng: 121.4317, cost: 80 },
       { time: '12:00', name: '中山公园 / 龙之梦午餐', type: '餐饮', note: '午餐选靠近地铁的商场，方便带行李转场；两人预算 ¥180-260。', lat: 31.2182, lng: 121.4165, cost: 220 },
-      { time: '14:00', name: '回酒店取行李', type: '酒店', note: '建议提前确认酒店能否寄存行李到 14:00-15:00；若返程较晚，可把苏河湾或静安补购物放到下午。', cost: 0 },
-      { time: '16:00', name: '前往虹桥机场 / 虹桥站', type: '交通', note: '优先从虹桥返深圳，市区到虹桥更稳定；去浦东需额外预留 40-60 分钟。', lat: 31.1979, lng: 121.3363, cost: 120 },
+      { time: '14:00', name: '回酒店取行李', type: '酒店', note: '建议提前确认酒店能否寄存行李到 14:00-15:00；若返程较晚，可把苏河湾或静安补购物放到下午。', imageUrl: shanghaiImages.radisson, cost: 0 },
+      { time: '16:00', name: '前往虹桥机场 / 虹桥站', type: '交通', note: '优先从虹桥返深圳，市区到虹桥更稳定；去浦东需额外预留 40-60 分钟。', imageUrl: shanghaiImages.hongqiaoStation, lat: 31.1979, lng: 121.3363, cost: 120 },
     ],
   },
 ]
@@ -294,9 +309,9 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
           title: '雨天改为陆家嘴与前滩室内线',
           routeSummary: '酒店 -> 陆家嘴中心 / 上海中心 -> 浦东美术馆 -> 前滩太古里 -> 返回市区',
           spots: [
-            { time: '09:30', name: '陆家嘴中心 / 上海中心商圈', type: '景点', note: '把原迪士尼日改成室内为主，先在陆家嘴完成城市天际线、商场和观景备选；暴雨时减少户外步行。', imageUrl: shanghaiImages.bund, lat: 31.234, lng: 121.507, cost: 160 },
+            { time: '09:30', name: '陆家嘴中心 / 上海中心商圈', type: '景点', note: '把原迪士尼日改成室内为主，先在陆家嘴完成城市天际线、商场和观景备选；暴雨时减少户外步行。', imageUrl: shanghaiImages.lujiazui, lat: 31.234, lng: 121.507, cost: 160 },
             { time: '12:30', name: '陆家嘴室内午餐', type: '餐饮', note: '选择国金中心、正大广场或上海中心内餐厅，两人预算压到 ¥220-320，方便避雨。', lat: 31.236, lng: 121.502, cost: 280 },
-            { time: '14:30', name: '浦东美术馆 / 室内展馆', type: '景点', note: '若展览预约合适，下午安排浦东美术馆；没有票则改上海中心观光或商场慢逛。', imageUrl: shanghaiImages.bund, lat: 31.239, lng: 121.499, cost: 240 },
+            { time: '14:30', name: '浦东美术馆 / 室内展馆', type: '景点', note: '若展览预约合适，下午安排浦东美术馆；没有票则改上海中心观光或商场慢逛。', imageUrl: shanghaiImages.pudongArtMuseum, lat: 31.239, lng: 121.499, cost: 240 },
             { time: '17:30', name: '前滩太古里晚餐与休整', type: '餐饮', note: '雨天不赶远路，前滩太古里完成晚餐和轻购物；第二天早起再去迪士尼。', lat: 31.153, lng: 121.478, cost: 420 },
           ],
         } satisfies DayPlan
@@ -345,7 +360,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
           routeSummary: '延误抵达 -> 酒店入住 -> 外滩源 / 北外滩短线 -> 酒店休息',
           spots: [
             { time: '18:30', name: '抵达上海并直接入住酒店', type: '酒店', note: '取消下午南京东路慢逛，先把行李和入住搞定；如果 20:00 后到，只保留酒店附近晚餐。', imageUrl: shanghaiImages.radisson, lat: 31.2355, lng: 121.4752, cost: 3200 },
-            { time: '20:00', name: '外滩源 / 北外滩短线', type: '景点', note: '只做 60-90 分钟夜景，不再跨太多点；如果太累，改为酒店附近散步。', imageUrl: shanghaiImages.bund, lat: 31.2503, lng: 121.4985, cost: 0 },
+            { time: '20:00', name: '外滩源 / 北外滩短线', type: '景点', note: '只做 60-90 分钟夜景，不再跨太多点；如果太累，改为酒店附近散步。', imageUrl: shanghaiImages.northBund, lat: 31.2503, lng: 121.4985, cost: 0 },
             { time: '21:30', name: '酒店附近晚餐与休息', type: '餐饮', note: '晚餐选南京东路或人民广场附近，避免排队店，两人控制 ¥180-280。', lat: 31.2355, lng: 121.4752, cost: 240 },
           ],
         } satisfies DayPlan
@@ -356,7 +371,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
           title: '补回南京东路与轻松返程',
           routeSummary: '南京东路 / 外滩源补逛 -> 午餐 -> 取行李 -> 虹桥返程',
           spots: [
-            { time: '09:30', name: '南京东路与外滩源补逛', type: '景点', note: '把首日取消的南京东路、外滩源补到返程日上午，拍照和伴手礼都更从容。', imageUrl: shanghaiImages.peaceHotel, lat: 31.2397, lng: 121.4902, cost: 80 },
+            { time: '09:30', name: '南京东路与外滩源补逛', type: '景点', note: '把首日取消的南京东路、外滩源补到返程日上午，拍照和伴手礼都更从容。', imageUrl: shanghaiImages.nanjingRoad, lat: 31.2397, lng: 121.4902, cost: 80 },
             ...dayPlan.spots.slice(1),
           ],
         } satisfies DayPlan

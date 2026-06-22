@@ -114,7 +114,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
   )
   const timelineSpots = useMemo(() => activeDayPlan?.spots ?? [], [activeDayPlan])
   const selectedSpot = timelineSpots[selectedSpotIndex] ?? timelineSpots[0]
-  const selectedSpotImage = selectedSpot?.imageUrl ?? timelineSpots.find((spot) => spot.imageUrl)?.imageUrl
+  const selectedSpotImage = selectedSpot?.imageUrl
   const useOfflineTimeline = offline || !hasAmapKey()
 
   useEffect(() => {
