@@ -237,7 +237,7 @@ export default function Plan() {
               onActiveDayChange={handleDailyDayChange}
               showNodeList={false}
             />
-            <div className="relative h-[610px] overflow-hidden">
+            <div className="relative h-[640px] overflow-hidden px-1">
               {plan.dayPlans.map((dayPlan) => (
                 (() => {
                   const index = plan.dayPlans.findIndex((item) => item.day === dayPlan.day)
@@ -250,13 +250,14 @@ export default function Plan() {
                     <article
                       key={dayPlan.day}
                       className={cn(
-                        'absolute inset-x-3 top-0 overflow-hidden rounded-[28px] border border-white/80 bg-stone-50 p-4 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
+                        'absolute inset-x-1 top-0 overflow-hidden rounded-[28px] border border-white/80 bg-stone-50 p-4 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
                         isVisible ? 'pointer-events-auto' : 'pointer-events-none',
+                        isActive ? '' : 'select-none',
                       )}
                       style={{
                         zIndex: isActive ? 30 : 20 - Math.abs(stackOffset),
-                        opacity: isVisible ? 1 : 0,
-                        transform: `translateX(${stackOffset * 24}px) translateY(${Math.abs(stackOffset) * 20}px) scale(${isActive ? 1 : 0.94})`,
+                        opacity: isVisible ? (isActive ? 1 : 0.36) : 0,
+                        transform: `translateX(${stackOffset * 10}px) translateY(${Math.abs(stackOffset) * 18}px) scale(${isActive ? 1 : 0.965})`,
                       }}
                       aria-hidden={!isVisible}
                     >
@@ -271,9 +272,9 @@ export default function Plan() {
                         个<br />节点
                       </div>
                     </div>
-                    <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
+                    <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {dayPlan.spots.map((spot) => (
-                        <div key={`${dayPlan.day}-${spot.time}-${spot.name}`} className="w-[78%] shrink-0 rounded-[24px] bg-white p-4 shadow-sm">
+                        <div key={`${dayPlan.day}-${spot.time}-${spot.name}`} className="w-full shrink-0 snap-center rounded-[24px] bg-white p-4 shadow-sm">
                           {spot.imageUrl ? (
                             <img src={spot.imageUrl} alt={spot.name} className="mb-4 h-32 w-full rounded-2xl object-cover" loading="lazy" />
                           ) : null}
@@ -297,22 +298,22 @@ export default function Plan() {
               <button
                 type="button"
                 onClick={() => goToDailyDay(-1)}
-                className="absolute left-0 top-0 z-40 flex h-full w-16 items-center justify-start bg-transparent pl-1 text-stone-900/55 transition hover:text-stone-950"
+                className="absolute left-0 top-0 z-40 flex h-full w-10 items-center justify-start bg-transparent text-stone-900/55 transition hover:text-stone-950"
                 aria-label="上一天行程"
                 title="上一天行程"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                <span className="flex h-10 w-10 -translate-x-1 items-center justify-center rounded-full bg-white/70 shadow-sm backdrop-blur">
                   <ChevronLeft className="h-5 w-5" />
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => goToDailyDay(1)}
-                className="absolute right-0 top-0 z-40 flex h-full w-16 items-center justify-end bg-transparent pr-1 text-stone-900/55 transition hover:text-stone-950"
+                className="absolute right-0 top-0 z-40 flex h-full w-10 items-center justify-end bg-transparent text-stone-900/55 transition hover:text-stone-950"
                 aria-label="下一天行程"
                 title="下一天行程"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/60 shadow-sm backdrop-blur">
+                <span className="flex h-10 w-10 translate-x-1 items-center justify-center rounded-full bg-white/70 shadow-sm backdrop-blur">
                   <ChevronRight className="h-5 w-5" />
                 </span>
               </button>
