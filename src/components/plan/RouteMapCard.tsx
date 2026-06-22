@@ -114,6 +114,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
   )
   const timelineSpots = useMemo(() => activeDayPlan?.spots ?? [], [activeDayPlan])
   const selectedSpot = timelineSpots[selectedSpotIndex] ?? timelineSpots[0]
+  const selectedSpotImage = selectedSpot?.imageUrl ?? timelineSpots.find((spot) => spot.imageUrl)?.imageUrl
   const useOfflineTimeline = offline || !hasAmapKey()
 
   useEffect(() => {
@@ -371,7 +372,16 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
             : '正在加载地图资源...'}
         </p>
         {selectedSpot ? (
-          <div className="rounded-[20px] border border-amber-100 bg-amber-50/70 px-3 py-3 shadow-sm">
+          <div className="overflow-hidden rounded-[22px] border border-amber-100 bg-amber-50/70 shadow-sm">
+            {selectedSpotImage ? (
+              <img
+                src={selectedSpotImage}
+                alt={selectedSpot.name}
+                className="h-32 w-full object-cover"
+                loading="lazy"
+              />
+            ) : null}
+            <div className="px-3 py-3">
             <div className="mb-2 flex items-center gap-2">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 text-[10px] font-semibold text-white">
                 {selectedSpotIndex + 1}
@@ -381,8 +391,10 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
                 <p className="text-[11px] text-stone-500">{selectedSpot.time} · {selectedSpot.type}</p>
               </div>
             </div>
+            {selectedSpot.address ? <p className="mb-2 text-[11px] leading-5 text-stone-500">{selectedSpot.address}</p> : null}
             <p className="text-[11px] leading-5 text-stone-600">{selectedSpot.note}</p>
             {selectedSpot.cost ? <p className="mt-2 text-[11px] font-semibold text-stone-800">预估费用 ¥{selectedSpot.cost}</p> : null}
+            </div>
           </div>
         ) : null}
         {showNodeList ? (

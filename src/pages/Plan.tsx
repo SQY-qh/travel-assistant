@@ -35,7 +35,6 @@ export default function Plan() {
 
   const isStoredShanghaiPlan = plan.localOnly && plan.selectedRecommendation.city === '上海'
   const spotRecommendations = plan.spotRecommendations ?? []
-  const activeDailyIndex = Math.max(0, plan.dayPlans.findIndex((dayPlan) => dayPlan.day === activeDailyDay))
 
   const goToSpot = (direction: -1 | 1) => {
     if (!spotRecommendations.length) return
@@ -44,12 +43,6 @@ export default function Plan() {
 
   const handleDailyDayChange = (day: number) => {
     setActiveDailyDay(day)
-  }
-
-  const goToDailyDay = (direction: -1 | 1) => {
-    if (!plan.dayPlans.length) return
-    const nextIndex = (activeDailyIndex + direction + plan.dayPlans.length) % plan.dayPlans.length
-    setActiveDailyDay(plan.dayPlans[nextIndex].day)
   }
 
   return (
@@ -228,108 +221,14 @@ export default function Plan() {
 
       <SectionCard title="按天行程" eyebrow="Daily Plans">
         {isStoredShanghaiPlan ? (
-          <div className="space-y-4">
-            <RouteMapCard
-              dayPlans={plan.dayPlans}
-              center={plan.selectedRecommendation.mapCenter}
-              destination={plan.selectedRecommendation.planningCity || plan.selectedRecommendation.city}
-              activeDay={activeDailyDay}
-              onActiveDayChange={handleDailyDayChange}
-              showNodeList={false}
-            />
-            <div className="relative h-[640px] overflow-hidden px-1">
-              {plan.dayPlans.map((dayPlan) => (
-                (() => {
-                  const index = plan.dayPlans.findIndex((item) => item.day === dayPlan.day)
-                  const forwardOffset = (index - activeDailyIndex + plan.dayPlans.length) % plan.dayPlans.length
-                  const stackOffset = forwardOffset > plan.dayPlans.length / 2 ? forwardOffset - plan.dayPlans.length : forwardOffset
-                  const isVisible = Math.abs(stackOffset) <= 1
-                  const isActive = dayPlan.day === activeDailyDay
-
-                  return (
-                    <article
-                      key={dayPlan.day}
-                      className={cn(
-                        'absolute inset-x-1 top-0 overflow-hidden rounded-[28px] border border-white/80 bg-stone-50 p-4 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
-                        isVisible ? 'pointer-events-auto' : 'pointer-events-none',
-                        isActive ? '' : 'select-none',
-                      )}
-                      style={{
-                        zIndex: isActive ? 30 : 20 - Math.abs(stackOffset),
-                        opacity: isVisible ? (isActive ? 1 : 0.36) : 0,
-                        transform: `translateX(${stackOffset * 10}px) translateY(${Math.abs(stackOffset) * 18}px) scale(${isActive ? 1 : 0.965})`,
-                      }}
-                      aria-hidden={!isVisible}
-                    >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.24em] text-stone-400">Day {dayPlan.day}</p>
-                        <h2 className="mt-1 text-lg font-semibold leading-7 text-stone-950">{dayPlan.title}</h2>
-                        <p className="mt-3 text-sm leading-7 text-stone-500">{dayPlan.routeSummary}</p>
-                      </div>
-                      <div className="shrink-0 rounded-full bg-white px-4 py-3 text-center text-sm leading-6 text-stone-500 shadow-sm">
-                        <span className="block text-lg font-semibold text-stone-700">{dayPlan.spots.length}</span>
-                        个<br />节点
-                      </div>
-                    </div>
-                    <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {dayPlan.spots.map((spot) => (
-                        <div key={`${dayPlan.day}-${spot.time}-${spot.name}`} className="w-full shrink-0 snap-center rounded-[24px] bg-white p-4 shadow-sm">
-                          {spot.imageUrl ? (
-                            <img src={spot.imageUrl} alt={spot.name} className="mb-4 h-32 w-full rounded-2xl object-cover" loading="lazy" />
-                          ) : null}
-                          <div className="flex items-center gap-2 text-stone-900">
-                            {spot.type === '景点' ? <Landmark className="h-4 w-4 text-amber-700" /> : null}
-                            {spot.type === '交通' ? <Compass className="h-4 w-4 text-amber-700" /> : null}
-                            {spot.type === '餐饮' ? <Clock3 className="h-4 w-4 text-amber-700" /> : null}
-                            {spot.type === '酒店' ? <Wallet className="h-4 w-4 text-amber-700" /> : null}
-                            <strong className="text-base leading-6">{spot.name}</strong>
-                          </div>
-                          <p className="mt-2 text-sm font-semibold text-stone-500">{spot.time}</p>
-                          <p className="mt-3 text-sm leading-7 text-stone-500">{spot.note}</p>
-                          {spot.cost ? <p className="mt-3 text-sm font-semibold text-stone-800">预估费用 ¥{spot.cost}</p> : null}
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                  )
-                })()
-              ))}
-              <button
-                type="button"
-                onClick={() => goToDailyDay(-1)}
-                className="absolute left-0 top-0 z-40 flex h-full w-10 items-center justify-start bg-transparent text-stone-900/55 transition hover:text-stone-950"
-                aria-label="上一天行程"
-                title="上一天行程"
-              >
-                <span className="flex h-10 w-10 -translate-x-1 items-center justify-center rounded-full bg-white/70 shadow-sm backdrop-blur">
-                  <ChevronLeft className="h-5 w-5" />
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => goToDailyDay(1)}
-                className="absolute right-0 top-0 z-40 flex h-full w-10 items-center justify-end bg-transparent text-stone-900/55 transition hover:text-stone-950"
-                aria-label="下一天行程"
-                title="下一天行程"
-              >
-                <span className="flex h-10 w-10 translate-x-1 items-center justify-center rounded-full bg-white/70 shadow-sm backdrop-blur">
-                  <ChevronRight className="h-5 w-5" />
-                </span>
-              </button>
-              <div className="absolute bottom-3 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
-                {plan.dayPlans.map((dayPlan) => (
-                  <button
-                    key={dayPlan.day}
-                    type="button"
-                    onClick={() => handleDailyDayChange(dayPlan.day)}
-                    className={cn('h-1.5 rounded-full transition-all', dayPlan.day === activeDailyDay ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-300')}
-                    aria-label={`切换到 Day ${dayPlan.day}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+          <RouteMapCard
+            dayPlans={plan.dayPlans}
+            center={plan.selectedRecommendation.mapCenter}
+            destination={plan.selectedRecommendation.planningCity || plan.selectedRecommendation.city}
+            activeDay={activeDailyDay}
+            onActiveDayChange={handleDailyDayChange}
+            showNodeList={false}
+          />
         ) : (
           <div className="space-y-4">
             {plan.dayPlans.map((dayPlan) => (

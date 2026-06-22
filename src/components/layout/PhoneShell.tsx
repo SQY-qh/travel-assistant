@@ -56,6 +56,7 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
     const target = event.target instanceof HTMLElement ? event.target : null
     if (!root || !target) return
     if (target.closest('.voya-peek-popover')) return
+    if (target.closest('[aria-label^="路线节点"]')) return
 
     const module = target.closest(interactiveSelector)
     if (!(module instanceof HTMLElement) || !root.contains(module) || module === root) return
