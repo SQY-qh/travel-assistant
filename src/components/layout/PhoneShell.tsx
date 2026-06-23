@@ -47,7 +47,13 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
   const isTryOnMode = displayPath === '/outfit-try-on'
   const isImmersiveMode = isCallMode || isTryOnMode
   const rootRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const [voyaPeek, setVoyaPeek] = useState<VoyaPeek | null>(null)
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0, left: 0 })
+    setVoyaPeek(null)
+  }, [currentPath])
 
   useEffect(() => {
     if (!voyaPeek) return
@@ -58,6 +64,7 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
   const showVoyaPeek = (event: PointerEvent<HTMLDivElement>) => {
     const root = rootRef.current
     const target = event.target instanceof HTMLElement ? event.target : null
+    if (isImmersiveMode) return
     if (!root || !target) return
     if (target.closest('.voya-peek-popover')) return
     if (target.closest('[aria-label^="路线节点"]')) return
@@ -92,7 +99,7 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
           onPointerDownCapture={showVoyaPeek}
           className="micro-motion-root relative flex h-full flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[#f9f5ef] shadow-inner"
         >
-          <div className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4', isImmersiveMode && 'overflow-hidden px-0 pb-0 pt-0')}>{children}</div>
+          <div ref={contentRef} className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4', isCallMode && 'overflow-hidden px-0 pb-0 pt-0', isTryOnMode && 'px-0 pb-0 pt-0')}>{children}</div>
           {!isImmersiveMode ? (
             <div className="px-3 pb-3 pt-1">
               <BottomTabs />

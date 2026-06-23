@@ -1,82 +1,84 @@
-import { useMemo } from 'react'
-import { ArrowLeft, Shirt, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Images, Shirt } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
-import VoyaAvatar from '@/components/common/VoyaAvatar'
 import { useTravelStore } from '@/store/useTravelStore'
 import { cn } from '@/lib/utils'
 import type { OutfitSuggestion } from '@/types/travel'
 
-type TryOnPalette = {
-  top: string
-  bottom: string
-  accent: string
-  shoe: string
-  bag: string
-  glow: string
+type TryOnImage = {
+  src: string
   label: string
 }
 
-const pickPalette = (outfit?: OutfitSuggestion): TryOnPalette => {
-  const text = `${outfit?.title ?? ''} ${outfit?.scenario ?? ''} ${outfit?.pieces?.join(' ') ?? ''}`
-  const isWoman = outfit?.gender !== '男'
+type TryOnPreset = {
+  label: string
+  glow: string
+  images: TryOnImage[]
+}
 
-  if (/雨|防水|雨天/.test(text)) {
-    return {
-      top: '#d9e3df',
-      bottom: '#2f3437',
-      accent: '#7d9a8a',
-      shoe: '#263238',
-      bag: '#3d4d4a',
-      glow: 'rgba(109, 145, 130, 0.2)',
-      label: '雨天机动',
-    }
-  }
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
 
-  if (/晚|夜|餐厅|黑色|深色/.test(text)) {
-    return {
-      top: isWoman ? '#171412' : '#24201d',
-      bottom: isWoman ? '#332d2b' : '#3b312e',
-      accent: '#b88a53',
-      shoe: '#1f1c1a',
-      bag: '#171412',
-      glow: 'rgba(184, 138, 83, 0.2)',
-      label: '夜景约会',
-    }
-  }
+const img = (name: string, label: string): TryOnImage => ({
+  src: assetUrl(`voya-tryon/${name}.png`),
+  label,
+})
 
-  if (/海|沙滩|防晒|度假/.test(text)) {
-    return {
-      top: '#f5e4c8',
-      bottom: isWoman ? '#8fc0c3' : '#87a9b6',
-      accent: '#d9a45d',
-      shoe: '#d5b083',
-      bag: '#b88952',
-      glow: 'rgba(126, 185, 189, 0.24)',
-      label: '海边轻装',
-    }
-  }
-
-  if (/冷|大衣|保暖|羊毛|针织/.test(text)) {
-    return {
-      top: '#5d554b',
-      bottom: '#2f3437',
-      accent: '#b79b6e',
-      shoe: '#342820',
-      bag: '#3d342c',
-      glow: 'rgba(109, 92, 73, 0.2)',
-      label: '叠穿保暖',
-    }
-  }
-
-  return {
-    top: isWoman ? '#f8f5ec' : '#e7e2d5',
-    bottom: isWoman ? '#aab89b' : '#3f4a43',
-    accent: '#c78f4c',
-    shoe: '#efe6d6',
-    bag: isWoman ? '#d7c4a9' : '#6e543c',
-    glow: 'rgba(199, 143, 76, 0.2)',
+const presets = {
+  cityWomen: {
     label: '城市漫游',
-  }
+    glow: 'rgba(199, 143, 76, 0.22)',
+    images: [
+      img('citywalk-women-01', '正面试穿'),
+      img('citywalk-women-02', '步行动作'),
+      img('citywalk-women-03', '展示动作'),
+    ],
+  },
+  cityMen: {
+    label: '城市漫游',
+    glow: 'rgba(126, 101, 70, 0.2)',
+    images: [
+      img('citywalk-men-01', '正面试穿'),
+      img('citywalk-women-02', '步行动作'),
+      img('citywalk-women-03', '展示动作'),
+    ],
+  },
+  rainyWomen: {
+    label: '雨天机动',
+    glow: 'rgba(109, 145, 130, 0.2)',
+    images: [
+      img('rainy-women-01', '正面试穿'),
+      img('rainy-women-02', '步行动作'),
+      img('rainy-women-03', '展示动作'),
+    ],
+  },
+  eveningWomen: {
+    label: '夜景约会',
+    glow: 'rgba(184, 138, 83, 0.2)',
+    images: [
+      img('evening-women-01', '正面试穿'),
+      img('citywalk-women-03', '展示动作'),
+      img('citywalk-women-02', '步行动作'),
+    ],
+  },
+  eveningMen: {
+    label: '夜景约会',
+    glow: 'rgba(44, 38, 34, 0.2)',
+    images: [
+      img('evening-men-01', '正面试穿'),
+      img('citywalk-men-01', '步行动作'),
+      img('citywalk-women-03', '展示动作'),
+    ],
+  },
+} satisfies Record<string, TryOnPreset>
+
+const resolvePreset = (outfit?: OutfitSuggestion): TryOnPreset => {
+  const text = `${outfit?.title ?? ''} ${outfit?.scenario ?? ''} ${outfit?.pieces?.join(' ') ?? ''}`
+  const isMan = outfit?.gender === '男'
+
+  if (/雨|防水|雨天/.test(text)) return presets.rainyWomen
+  if (/晚|夜|餐厅|黑色|深色/.test(text)) return isMan ? presets.eveningMen : presets.eveningWomen
+  if (/城市|漫游|citywalk|步行|衬衫|短袖|阔腿裤|直筒裤/.test(text)) return isMan ? presets.cityMen : presets.cityWomen
+  return presets.cityWomen
 }
 
 export default function OutfitTryOn() {
@@ -89,8 +91,21 @@ export default function OutfitTryOn() {
     ? Math.min(Math.max(rawIndex, 0), Math.max(outfits.length - 1, 0))
     : 0
   const outfit = outfits[activeIndex]
-  const palette = useMemo(() => pickPalette(outfit), [outfit])
-  const pieces = outfit?.pieces ?? ['轻量上衣', '舒适下装', '耐走鞋', '随身小包']
+  const preset = useMemo(() => resolvePreset(outfit), [outfit])
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const pieces = outfit?.pieces ?? ['亚麻衬衫', '阔腿裤', '舒适运动鞋', '小挎包']
+  const activeImage = preset.images[activeImageIndex] ?? preset.images[0]
+
+  useEffect(() => {
+    setActiveImageIndex(0)
+  }, [activeIndex, preset])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveImageIndex((current) => (current + 1) % preset.images.length)
+    }, 2200)
+    return () => window.clearInterval(timer)
+  }, [preset.images.length])
 
   const goBack = () => {
     if (window.history.length > 1) {
@@ -100,68 +115,60 @@ export default function OutfitTryOn() {
     navigate('/prepare')
   }
 
-  return (
-    <div className="relative min-h-full overflow-hidden bg-[#fbf8f1] px-4 py-5">
-      <div
-        className="pointer-events-none absolute inset-x-8 top-20 h-72 rounded-full blur-3xl"
-        style={{ backgroundColor: palette.glow }}
-      />
-      <div className="relative z-10 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={goBack}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/82 text-stone-800 shadow-sm backdrop-blur"
-          aria-label="返回上一页"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <span className="rounded-full bg-white/82 px-3 py-1.5 text-[11px] font-semibold text-stone-600 shadow-sm backdrop-blur">
-          {palette.label}
-        </span>
-      </div>
+  const goToImage = (direction: -1 | 1) => {
+    setActiveImageIndex((current) => (current + direction + preset.images.length) % preset.images.length)
+  }
 
-      <section className="relative z-10 mt-7 rounded-[32px] border border-white/80 bg-white/55 px-4 pb-5 pt-6 shadow-[0_22px_55px_rgba(82,61,34,0.14)]">
-        <div className="relative mx-auto h-[410px] w-[268px]">
-          <div className="try-on-floor absolute bottom-9 left-1/2 h-12 w-48 -translate-x-1/2 rounded-full bg-stone-900/10 blur-md" />
-          <div className="try-on-walk absolute left-1/2 top-0 h-[366px] w-[250px] -translate-x-1/2">
-            <VoyaAvatar state="sharing" size="call" className="try-on-avatar h-[354px] w-[250px] rounded-[56px]" />
-            <div className="pointer-events-none absolute left-1/2 top-[136px] h-[92px] w-[92px] -translate-x-1/2">
-              <span
-                className="try-on-top absolute left-1/2 top-0 block h-[102px] w-[92px] -translate-x-1/2 rounded-[30px_30px_22px_22px] border border-white/50 shadow-[inset_0_14px_22px_rgba(255,255,255,0.22)]"
-                style={{ backgroundColor: palette.top }}
-              />
-              <span
-                className="try-on-accent absolute left-1/2 top-8 block h-2.5 w-20 -translate-x-1/2 rounded-full"
-                style={{ backgroundColor: palette.accent }}
-              />
-              <span
-                className="try-on-bottom absolute left-1/2 top-[82px] block h-[86px] w-[74px] -translate-x-1/2 rounded-[16px_16px_28px_28px]"
-                style={{ backgroundColor: palette.bottom }}
-              />
-              <span
-                className={cn(
-                  'try-on-bag absolute top-[34px] block h-14 w-11 rounded-[16px] border border-white/55 shadow-[0_8px_16px_rgba(28,25,23,0.16)]',
-                  outfit?.gender === '男' ? '-right-10' : '-left-10',
-                )}
-                style={{ backgroundColor: palette.bag }}
-              />
-              <span
-                className="try-on-shoe absolute left-[5px] top-[156px] block h-5 w-10 rounded-full"
-                style={{ backgroundColor: palette.shoe }}
-              />
-              <span
-                className="try-on-shoe try-on-shoe-alt absolute right-[5px] top-[156px] block h-5 w-10 rounded-full"
-                style={{ backgroundColor: palette.shoe }}
-              />
-            </div>
+  return (
+    <div className="relative min-h-full bg-[#fbf8f1] px-4 py-4">
+      <div
+        className="pointer-events-none absolute inset-x-6 top-20 h-80 rounded-full blur-3xl"
+        style={{ backgroundColor: preset.glow }}
+      />
+      <button
+        type="button"
+        onClick={goBack}
+        className="sticky left-3 top-3 z-50 inline-flex items-center gap-1.5 rounded-full bg-stone-950 px-3.5 py-2 text-xs font-semibold text-white shadow-[0_12px_26px_rgba(28,25,23,0.22)]"
+        aria-label="返回上一页"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        返回
+      </button>
+
+      <section className="relative z-10 -mt-1 rounded-[32px] border border-white/80 bg-white/62 px-4 pb-5 pt-5 shadow-[0_22px_55px_rgba(82,61,34,0.14)]">
+        <div className="relative mx-auto h-[430px] overflow-hidden rounded-[30px] bg-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.8)]">
+          <img
+            key={activeImage.src}
+            src={activeImage.src}
+            alt={`VOYA ${outfit?.title ?? '试穿'}${activeImage.label}`}
+            className="try-on-photo h-full w-full object-contain"
+            loading="eager"
+            decoding="async"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/92 to-transparent" />
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/88 px-3 py-2 text-[11px] font-medium text-stone-700 shadow-sm backdrop-blur">
+            <Images className="h-3.5 w-3.5 text-amber-700" />
+            VOYA 试穿图 · {activeImage.label}
           </div>
-          <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/86 px-3 py-2 text-[11px] font-medium text-stone-600 shadow-sm backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-            VOYA 正在试穿
-          </div>
+          <button
+            type="button"
+            onClick={() => goToImage(-1)}
+            className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-stone-700 shadow-sm backdrop-blur"
+            aria-label="上一张试穿图"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => goToImage(1)}
+            className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-stone-700 shadow-sm backdrop-blur"
+            aria-label="下一张试穿图"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
 
-        <div className="-mt-1 text-center">
+        <div className="mt-4 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-3 py-1.5 text-[11px] font-semibold text-white">
             <Shirt className="h-3.5 w-3.5 text-amber-200" />
             第 {activeIndex + 1} 套
@@ -172,6 +179,27 @@ export default function OutfitTryOn() {
           <p className="mx-auto mt-2 max-w-[280px] text-xs leading-6 text-stone-500">
             {outfit?.mood ?? '这套以轻便和耐走为主，适合在城市里连续转场。'}
           </p>
+        </div>
+      </section>
+
+      <section className="relative z-10 mt-4 rounded-[28px] border border-white/80 bg-white/74 p-4 shadow-sm">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">Try-on Gallery</p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {preset.images.map((image, index) => (
+            <button
+              key={image.src}
+              type="button"
+              onClick={() => setActiveImageIndex(index)}
+              className={cn(
+                'overflow-hidden rounded-2xl border bg-white p-1 shadow-sm transition',
+                index === activeImageIndex ? 'border-stone-950' : 'border-stone-100',
+              )}
+              aria-label={`查看${image.label}`}
+            >
+              <img src={image.src} alt={image.label} className="h-20 w-full rounded-xl object-cover object-top" loading="eager" decoding="async" />
+              <span className="mt-1 block text-[10px] font-medium text-stone-500">{image.label}</span>
+            </button>
+          ))}
         </div>
       </section>
 

@@ -138,45 +138,9 @@ div::-webkit-scrollbar-thumb {
   animation: voya-peek-wave 1.05s ease-in-out infinite;
 }
 
-.try-on-walk {
-  animation: try-on-walk 2.8s ease-in-out infinite;
-  transform-origin: 50% 78%;
-}
-
-.try-on-avatar {
-  animation: try-on-avatar 1.36s ease-in-out infinite;
-}
-
-.try-on-top,
-.try-on-bottom,
-.try-on-bag {
-  opacity: 0.78;
-  mix-blend-mode: multiply;
-}
-
-.try-on-top {
-  animation: try-on-fabric 1.36s ease-in-out infinite;
-}
-
-.try-on-bottom {
-  animation: try-on-step 1.36s ease-in-out infinite;
-}
-
-.try-on-bag {
-  animation: try-on-bag 1.36s ease-in-out infinite;
-}
-
-.try-on-shoe {
-  opacity: 0.9;
-  animation: try-on-shoe-left 0.68s ease-in-out infinite alternate;
-}
-
-.try-on-shoe-alt {
-  animation-name: try-on-shoe-right;
-}
-
-.try-on-floor {
-  animation: try-on-shadow 1.36s ease-in-out infinite;
+.try-on-photo {
+  animation: try-on-photo-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both, try-on-photo-float 2.2s ease-in-out infinite;
+  transform-origin: 50% 88%;
 }
 
 @keyframes voya-call-float {
@@ -251,91 +215,26 @@ div::-webkit-scrollbar-thumb {
   }
 }
 
-@keyframes try-on-walk {
-  0%,
-  100% {
-    transform: translateX(-50%) translateY(0) rotate(-0.35deg);
+@keyframes try-on-photo-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
   }
 
-  50% {
-    transform: translateX(-50%) translateY(-7px) rotate(0.35deg);
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes try-on-avatar {
+@keyframes try-on-photo-float {
   0%,
   100% {
     filter: saturate(1);
   }
 
   50% {
-    filter: saturate(1.08) brightness(1.02);
-  }
-}
-
-@keyframes try-on-fabric {
-  0%,
-  100% {
-    transform: translateX(-50%) skewX(-1deg);
-  }
-
-  50% {
-    transform: translateX(-50%) skewX(1deg);
-  }
-}
-
-@keyframes try-on-step {
-  0%,
-  100% {
-    transform: translateX(-50%) rotate(-1.2deg);
-  }
-
-  50% {
-    transform: translateX(-50%) rotate(1.2deg);
-  }
-}
-
-@keyframes try-on-bag {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-
-  50% {
-    transform: translateY(4px) rotate(2deg);
-  }
-}
-
-@keyframes try-on-shoe-left {
-  from {
-    transform: translateX(-2px) translateY(0) rotate(2deg);
-  }
-
-  to {
-    transform: translateX(4px) translateY(-3px) rotate(-4deg);
-  }
-}
-
-@keyframes try-on-shoe-right {
-  from {
-    transform: translateX(4px) translateY(-3px) rotate(-4deg);
-  }
-
-  to {
-    transform: translateX(-2px) translateY(0) rotate(2deg);
-  }
-}
-
-@keyframes try-on-shadow {
-  0%,
-  100% {
-    transform: translateX(-50%) scaleX(0.92);
-    opacity: 0.38;
-  }
-
-  50% {
-    transform: translateX(-50%) scaleX(1.06);
-    opacity: 0.24;
+    filter: saturate(1.04) brightness(1.015);
   }
 }
 
