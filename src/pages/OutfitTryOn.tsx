@@ -38,8 +38,8 @@ const presets = {
     glow: 'rgba(126, 101, 70, 0.2)',
     images: [
       img('citywalk-men-01', '正面试穿'),
-      img('citywalk-women-02', '步行动作'),
-      img('citywalk-women-03', '展示动作'),
+      img('citywalk-men-02', '步行动作'),
+      img('citywalk-men-03', '展示动作'),
     ],
   },
   rainyWomen: {
@@ -56,8 +56,8 @@ const presets = {
     glow: 'rgba(184, 138, 83, 0.2)',
     images: [
       img('evening-women-01', '正面试穿'),
-      img('citywalk-women-03', '展示动作'),
-      img('citywalk-women-02', '步行动作'),
+      img('evening-women-02', '步行动作'),
+      img('evening-women-03', '展示动作'),
     ],
   },
   eveningMen: {
@@ -65,8 +65,8 @@ const presets = {
     glow: 'rgba(44, 38, 34, 0.2)',
     images: [
       img('evening-men-01', '正面试穿'),
-      img('citywalk-men-01', '步行动作'),
-      img('citywalk-women-03', '展示动作'),
+      img('evening-men-02', '步行动作'),
+      img('evening-men-03', '展示动作'),
     ],
   },
 } satisfies Record<string, TryOnPreset>
