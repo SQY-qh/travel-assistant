@@ -35,8 +35,10 @@ const shanghaiImages = {
 
 const hotelRoomImages = {
   radissonExterior: 'https://media.radissonhotels.net/image/radisson-blu-hotel-shanghai-new-world/exterior/16256-113952-f72757582_4K.jpg?impolicy=HomeHero',
-  radissonRoom: 'https://media.radissonhotels.net/image/radisson-blu-hotel-shanghai-new-world/guest-room/16256-113952-f85642073_3XL.jpg?impolicy=Card&width=2880&height=1920',
-  radissonSuite: 'https://media.radissonhotels.net/image/radisson-blu-hotel-shanghai-new-world/suite/16256-113952-f65054507_3XL.jpg?impolicy=Card&width=2880&height=1920',
+  radissonRoom: 'https://media.radissonhotels.net/image/radisson-blu-hotel-shanghai-new-world/guest-room/16256-113952-f85642073_4K.jpg?impolicy=Card',
+  radissonSuite: 'https://media.radissonhotels.net/image/radisson-blu-hotel-shanghai-new-world/suite/16256-113952-f65054505_4K.jpg?impolicy=Card',
+  fairmontKingRoom: 'https://m.ahstatic.com/is/image/accorhotels/HCM_P_7202556:3by2?fmt=webp&wid=600&hei=400&qlt=80',
+  fairmontDeluxeRoom: 'https://m.ahstatic.com/is/image/accorhotels/HCM_P_4493266:3by2?fmt=webp&wid=600&hei=400&qlt=80',
   shanghaiMansion: commonsImage('Shanghai Mansion.JPG'),
   astorLobby: shanghaiImages.astorLobby,
 }
@@ -49,7 +51,7 @@ const shanghaiRecommendation = {
   bestWindow: '2026 年 7 月 1 日至 7 月 5 日，按 4 晚 5 天规划',
   highlights: ['深圳直达上海交通选择多', '情侣城市漫游与夜景体验强', '预算 1 万可覆盖舒适住宿与重点门票'],
   reasons: ['从深圳出发航班和高铁都稳定，适合做前后一天比价。', '上海 5 天游可以把外滩、武康路、迪士尼、苏河湾和展馆分层安排。', '夏季天气多变，室内外替换方案成熟。'],
-  matchReason: '已根据“深圳到上海 / 7 月 1 日出发 / 5 天 / 情侣 / 预算 1 万”生成完整方案，重点兼顾外滩夜景、衡复街区、迪士尼、苏河湾和前后一天预订比价。',
+  matchReason: '这条 5 天游把外滩夜景、衡复街区、迪士尼和苏河湾串在一起，节奏适合情侣出行，也保留了前后一天的订票比价空间。',
   coverImage: shanghaiImages.bund,
   weatherSummary: '7 月上海偏湿热，午后可能阵雨；建议上午户外、午后室内、傍晚夜景。',
   mapCenter: [121.4737, 31.2304] as [number, number],
@@ -61,8 +63,8 @@ const dayPlans: DayPlan[] = [
     title: '抵达上海与外滩夜景开场',
     routeSummary: '深圳 -> 上海虹桥 / 浦东 -> Radisson Blu Hotel Shanghai New World -> 南京东路 -> 外滩 -> 北外滩',
     spots: [
-      { time: '08:20', name: '深圳宝安机场 / 深圳北站出发', type: '交通', note: '优先选上午抵达上海的航班；高铁备选为 G902 深圳北 11:57 到上海虹桥 19:43。情侣行李控制在 20 寸箱，地铁转场更轻。', imageUrl: shanghaiImages.szxAirport, cost: 2560, costDetails: ['机票口径：深圳 SZX -> 上海 SHA/PVG 往返 2 人参考 ¥2560。', '高铁备选：G902 二等座两人单程约 ¥1734，返程需另查库存。', '市内首段地铁/打车另在交通预算中计入。'] },
-      { time: '12:30', name: 'Radisson Blu Hotel Shanghai New World 入住', address: '上海市南京西路 88 号 / 人民广场商圈', type: '酒店', note: '住 Radisson Blu Hotel Shanghai New World，去外滩、武康路、迪士尼和虹桥都比较均衡；建议订可取消房型，便于前后一天比价。', imageUrl: hotelRoomImages.radissonExterior, lat: 31.2355, lng: 121.4752, cost: 4200, costDetails: ['Radisson Blu Hotel Shanghai New World 4 晚舒适客房参考 ¥4200。', '包含 7/1 入住、7/5 退房；不含押金、早餐加购和城市交通。', '实际房价、税费和退改规则以酒店官网/OTA 下单页为准。'] },
+      { time: '08:20', name: '深圳宝安机场 / 深圳北站出发', type: '交通', note: '优先选上午抵达上海的直飞航班；高铁备选 G902，深圳北 11:57 出发、19:43 到上海虹桥。情侣行李控制在 20 寸箱，地铁换乘会轻松很多。', imageUrl: shanghaiImages.szxAirport, cost: 2560, costDetails: ['深圳往返上海两人机票约 ¥2560。', '如果改坐 G902，高铁二等座两人单程约 ¥1734。', '到达后的地铁或打车另放在市内交通预算里。'] },
+      { time: '12:30', name: 'Radisson Blu Hotel Shanghai New World 入住', address: '上海市南京西路 88 号 / 人民广场商圈', type: '酒店', note: '住 Radisson Blu Hotel Shanghai New World，去外滩、武康路、迪士尼和虹桥都比较顺。建议选可取消房型，后面如果日期微调也不被动。', imageUrl: hotelRoomImages.radissonExterior, lat: 31.2355, lng: 121.4752, cost: 4200, costDetails: ['Radisson Blu Hotel Shanghai New World 4 晚约 ¥4200。', '7/1 入住、7/5 退房，不含押金、早餐加购和市内交通。', '订房前再看一眼退改规则，尽量选可取消。'] },
       { time: '15:30', name: '南京东路步行街', type: '景点', note: '首日下午只做轻量城市适应，逛第一食品商店、和平饭店外观、外滩源一带；人多时走支路到圆明园路更舒服。', imageUrl: shanghaiImages.nanjingRoad, lat: 31.2397, lng: 121.4902, cost: 80, costDetails: ['景点本身免费。', '两人饮品/小食/伴手礼机动预算 ¥80。'] },
       { time: '18:00', name: '外滩日落到蓝调时刻', type: '景点', note: '情侣照建议 18:30 前到黄浦公园附近占位，先拍万国建筑群，再等陆家嘴亮灯；晚餐不要排太远，避免错过夜景。', imageUrl: shanghaiImages.bund, lat: 31.2405, lng: 121.4909, cost: 260, costDetails: ['外滩观景免费。', '南京东路/外滩源简餐两人约 ¥220。', '拍照补水和短途地铁预留 ¥40。'] },
       { time: '20:00', name: '北外滩滨江 / 乍浦路桥', type: '景点', note: '外滩人多时转去北外滩，机位更开阔；乍浦路桥适合拍东方明珠和苏州河夜色。', imageUrl: shanghaiImages.northBund, lat: 31.2503, lng: 121.4985, cost: 40, costDetails: ['滨江和桥位拍照免费。', '从外滩转场到北外滩的地铁/打车分摊约 ¥40。'] },
@@ -86,7 +88,7 @@ const dayPlans: DayPlan[] = [
     routeSummary: '上海迪士尼度假区；若天气/体力变化则改陆家嘴 + 前滩太古里',
     spots: [
       { time: '07:15', name: '从 Radisson Blu 前往上海迪士尼', type: '交通', note: '从人民广场到迪士尼约 60-80 分钟。想玩热门项目建议早到；不追求全项目则 9:30 后入园更轻松。', imageUrl: shanghaiImages.disneyTown, cost: 90, costDetails: ['人民广场到迪士尼地铁两人约 ¥16。', '早高峰打车/补差机动预留约 ¥74。'] },
-      { time: '09:00', name: '上海迪士尼乐园', type: '景点', note: '情侣优先顺序：疯狂动物城热力追踪、创极速光轮、加勒比海盗、七个小矮人矿山车。只选 4-5 个重点，不必硬刷全园。', imageUrl: shanghaiImages.disney, lat: 31.144, lng: 121.657, cost: 1180, costDetails: ['两张标准日门票参考约 ¥950-1100。', '热门项目尊享卡/园内机动预留 ¥80-230。', '实际票价以迪士尼官方日历为准。'] },
+      { time: '09:00', name: '上海迪士尼乐园', type: '景点', note: '情侣优先顺序：疯狂动物城热力追踪、创极速光轮、加勒比海盗、七个小矮人矿山车。只抓 4-5 个重点项目，玩得会比硬刷全园舒服。', imageUrl: shanghaiImages.disney, lat: 31.144, lng: 121.657, cost: 1180, costDetails: ['两张标准日门票约 ¥950-1100。', '如果当天排队较长，预留 ¥80-230 给热门项目或园内加购。', '出发前看一下当天票档和演出时间。'] },
       { time: '13:30', name: '园内午餐与降温休息', type: '餐饮', note: '中午避开排队和暴晒，选室内餐厅；带小风扇、雨衣和水杯，预算两人 ¥180-260。', imageUrl: shanghaiImages.disneyTown, lat: 31.144, lng: 121.657, cost: 220, costDetails: ['园内两份套餐约 ¥160-180。', '饮品/雪糕/补水约 ¥40-60。'] },
       { time: '18:30', name: '城堡烟花 / 夜间巡游', type: '景点', note: '如果当日烟花开放，提前 45 分钟找位置；若雨天取消，改去迪士尼小镇晚餐后回酒店。', imageUrl: shanghaiImages.disney, lat: 31.144, lng: 121.657, cost: 0, costDetails: ['夜间巡游和烟花含在门票内。', '如改迪士尼小镇晚餐，餐饮费用会从机动预算扣除。'] },
       { time: '21:30', name: '返回 Radisson Blu Hotel Shanghai New World', type: '交通', note: '回程排队明显，提前约车或接受地铁人流；第二天上午安排轻松一点。', imageUrl: hotelRoomImages.radissonExterior, cost: 120, costDetails: ['两人地铁回人民广场约 ¥16。', '夜间打车/网约车备选预留约 ¥100。'] },
@@ -111,7 +113,7 @@ const dayPlans: DayPlan[] = [
     spots: [
       { time: '09:30', name: '愚园路城市更新街区', type: '景点', note: '最后一天不排重景点，适合咖啡、买伴手礼、补拍街景；比外滩更适合作为轻松收尾。', imageUrl: shanghaiImages.yuyuanRoad, lat: 31.2209, lng: 121.4317, cost: 120, costDetails: ['街区慢逛免费。', '两杯咖啡/茶饮约 ¥80。', '伴手礼机动预算 ¥40。'] },
       { time: '12:00', name: '中山公园 / 龙之梦午餐', type: '餐饮', note: '午餐选靠近地铁的商场，方便带行李转场；两人预算 ¥180-260。', imageUrl: shanghaiImages.longemont, lat: 31.2182, lng: 121.4165, cost: 220, costDetails: ['龙之梦商场两人午餐约 ¥180。', '饮品/打包小食约 ¥40。'] },
-      { time: '14:00', name: '回 Radisson Blu Hotel Shanghai New World 取行李', type: '酒店', note: '提前确认酒店能否寄存行李到 14:00-15:00；若返程较晚，可把苏河湾或静安补购物放到下午。', imageUrl: hotelRoomImages.radissonRoom, cost: 0, costDetails: ['酒店寄存通常免费，以前台实际规则为准。', '如延迟退房需另询酒店当日政策。'] },
+      { time: '14:00', name: '回 Radisson Blu Hotel Shanghai New World 取行李', type: '酒店', note: '提前和前台确认行李可以寄存到 14:00-15:00；若返程较晚，可以把苏河湾或静安补购物放到下午。', imageUrl: hotelRoomImages.radissonRoom, cost: 0, costDetails: ['行李寄存通常不收费。', '如果想延迟退房，到店后再和前台确认。'] },
       { time: '16:00', name: '前往虹桥机场 / 虹桥站', type: '交通', note: '优先从虹桥返深圳，市区到虹桥更稳定；去浦东需额外预留 40-60 分钟。', imageUrl: shanghaiImages.hongqiaoStation, lat: 31.1979, lng: 121.3363, cost: 120, costDetails: ['人民广场到虹桥地铁两人约 ¥14。', '带行李打车/网约车预留约 ¥100。', '机票返程费用已在 Day 1 往返交通预算中计入。'] },
     ],
   },
@@ -119,14 +121,14 @@ const dayPlans: DayPlan[] = [
 
 export const shenzhenShanghaiBookingComparison: BookingComparison = {
   title: '深圳到上海前后一天整体比价',
-  baseline: '交通班次与酒店名称采用真实可查对象；票价、房价、库存和退改规则下单前请以航司、12306、酒店官网或 OTA 实时页面为准。',
+  baseline: '交通和住宿都按明确班次与酒店来排。价格会随日期和余量变化，临近付款前再确认一次就好。',
   cheapestOptionId: 'early',
   recommendedOptionId: 'baseline',
   summary: '纯价格最低是 6 月 30 日提前一天出发，但会多请一天假；综合体验推荐仍选 7 月 1 日上午出发，航班和酒店价格接近低位，行程完整度最好。',
   insights: [
-    '高铁参考最低：G902 二等座两人约 ¥1734，耗时约 7 小时 46 分。',
-    '真实酒店优先：Radisson Blu Shanghai New World，人民广场位置最稳。',
-    '机酒合计按直飞 + 人民广场真实酒店预算约 ¥6760，实时价会波动。',
+    '高铁备选：G902 二等座两人约 ¥1734，耗时约 7 小时 46 分。',
+    '首选住宿：Radisson Blu Shanghai New World，人民广场位置最稳。',
+    '直飞 + 人民广场酒店约 ¥6760，适合想把首日晚景保住的安排。',
     '综合推荐仍选 7/1-7/5，少请假且首日外滩夜景完整。',
   ],
   options: [
@@ -141,12 +143,12 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
       hotelTotal: 3840,
       totalByFlight: 6240,
       totalByTrain: 5574,
-      recommendation: '真实班次可查，适合能提前请假、想把首日节奏放慢的人；价格需下单前按航司、12306 和酒店平台实时确认。',
-      flightPlan: 'SZX-SHA/PVG 直飞航线；春秋/南航/东航等可查',
+      recommendation: '适合能提前请假、想把首日节奏放慢的人；多出来的一晚会更松弛，但也要多请半天到一天假。',
+      flightPlan: '深圳宝安 -> 上海虹桥 / 浦东直飞',
       trainPlan: 'G902 深圳北 11:57-上海虹桥 19:43',
       hotelPlan: 'Radisson Blu Shanghai New World',
-      sourceNote: '班次真实可查，票价按查询日波动',
-      bookingTips: ['航班优先看深圳宝安 -> 上海虹桥 / 浦东直飞，避开过晚抵达。', '高铁以 12306 当日库存为准，G902 为深圳北到上海虹桥长途高铁代表班次。', '酒店优先锁 Radisson Blu Hotel Shanghai New World；备选看 Broadway Mansions Hotel Shanghai。'],
+      sourceNote: '提前一天更便宜，但多占假期',
+      bookingTips: ['航班优先看上午直飞，避开过晚抵达。', '高铁备选 G902，抵达后可直接进市区。', '酒店优先锁 Radisson Blu Hotel Shanghai New World；预算收紧再看 Broadway Mansions Hotel Shanghai。'],
     },
     {
       id: 'baseline',
@@ -159,12 +161,12 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
       hotelTotal: 4200,
       totalByFlight: 6760,
       totalByTrain: 5934,
-      recommendation: '综合最推荐：日期不额外占假，深圳到上海直飞和 G902 高铁均为真实可查交通选择，酒店用真实人民广场商圈酒店做预算。',
-      flightPlan: '春秋 9C8956 等 SZX-SHA 直飞可查',
+      recommendation: '综合最推荐：不用额外请假，上午出发还能保住首日晚景，住宿位置也最贴合这条路线。',
+      flightPlan: '深圳宝安 -> 上海虹桥 / 浦东直飞',
       trainPlan: 'G902 深圳北 11:57-上海虹桥 19:43',
       hotelPlan: 'Radisson Blu Hotel Shanghai New World',
-      sourceNote: '航班/酒店实时价以平台为准',
-      bookingTips: ['机票优先筛“深圳宝安 -> 上海虹桥”上午直飞，春秋 9C8956 等航班可作为查询样例。', '高铁可查 G902 深圳北 11:57 到上海虹桥 19:43，二等座参考价约 ¥867/人。', '酒店选 Radisson Blu Hotel Shanghai New World，人民广场 / 南京西路位置更贴合行程。'],
+      sourceNote: '少请假，首日晚景完整',
+      bookingTips: ['机票优先筛“深圳宝安 -> 上海虹桥”上午直飞。', '高铁备选 G902，二等座约 ¥867/人。', '酒店选 Radisson Blu Hotel Shanghai New World，人民广场 / 南京西路位置更贴合行程。'],
     },
     {
       id: 'late',
@@ -177,24 +179,24 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
       hotelTotal: 4560,
       totalByFlight: 7260,
       totalByTrain: 6513,
-      recommendation: '周末住宿通常更紧，适合想把周末完整留在上海的人；交通仍采用真实可查直飞 / 高铁班次作为查询基准。',
-      flightPlan: 'SZX-SHA/PVG 直飞航线实时筛选',
+      recommendation: '适合想把周末完整留在上海的人；缺点是周末住宿更容易涨价，整体预算会比原计划高。',
+      flightPlan: '深圳宝安 -> 上海虹桥 / 浦东直飞',
       trainPlan: 'G386 深圳北 14:27-上海虹桥 22:42',
       hotelPlan: 'Broadway Mansions Hotel Shanghai / Fairmont Peace Hotel Shanghai',
-      sourceNote: '周末酒店价波动更明显',
-      bookingTips: ['周末酒店可能抬价，建议同步看上海大厦 / 和平饭店等真实酒店库存。', '高铁可查 G386 深圳北 14:27 到上海虹桥 22:42，二等座参考价约 ¥976.5/人。', '返程优先虹桥，少承受浦东远距离转场。'],
+      sourceNote: '周末更完整，住宿更贵',
+      bookingTips: ['周末酒店可能抬价，建议同步看上海大厦和和平饭店。', '高铁备选 G386，深圳北 14:27 到上海虹桥 22:42。', '返程优先虹桥，少承受浦东远距离转场。'],
     },
   ],
   hotelOptions: [
     {
       name: 'Radisson Blu Hotel Shanghai New World',
       area: '南京西路 88 号 / 人民广场商圈',
-      priceHint: '真实酒店；4 晚预算按 ¥4200 左右做展示，实际以官网/Booking/携程实时价为准',
+      priceHint: '4 晚约 ¥4200，位置稳，适合第一次来上海',
       reason: '人民广场、南京东路和地铁转场都方便，和这条 5 天游路线匹配度最高。',
       imageUrl: hotelRoomImages.radissonExterior,
       roomImages: [
-        { url: hotelRoomImages.radissonRoom, label: '官网客房' },
-        { url: hotelRoomImages.radissonSuite, label: '官网套房' },
+        { url: hotelRoomImages.radissonRoom, label: '客房' },
+        { url: hotelRoomImages.radissonSuite, label: '套房' },
       ],
       imageCredit: 'Radisson Hotels',
       sourceUrl: 'https://www.radissonhotels.com/en-us/hotels/radisson-blu-shanghai-new-world',
@@ -202,12 +204,12 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
     {
       name: 'Fairmont Peace Hotel Shanghai',
       area: '南京东路 20 号 / 外滩',
-      priceHint: '真实酒店；外滩经典奢华档，实际价格需按官网/平台实时查询',
+      priceHint: '外滩经典奢华档，适合预算上调时选择',
       reason: '外滩夜景体验最强，适合预算上调时作为氛围感住宿备选。',
       imageUrl: shanghaiImages.peaceHotel,
       roomImages: [
-        { url: shanghaiImages.bund, label: '外滩视角' },
-        { url: shanghaiImages.nanjingRoad, label: '南京东路周边' },
+        { url: hotelRoomImages.fairmontKingRoom, label: 'Fairmont 客房' },
+        { url: hotelRoomImages.fairmontDeluxeRoom, label: 'Deluxe 客房' },
       ],
       imageCredit: 'Wikimedia Commons',
       sourceUrl: 'https://www.fairmont.com/en/hotels/shanghai/fairmont-peace-hotel.html',
@@ -215,12 +217,12 @@ export const shenzhenShanghaiBookingComparison: BookingComparison = {
     {
       name: 'Broadway Mansions Hotel Shanghai',
       area: '北苏州路 20 号 / 北外滩',
-      priceHint: '真实酒店；适合北外滩和苏州河动线，价格以平台实时库存为准',
+      priceHint: '4 晚约 ¥2600 起，适合压预算又想靠近北外滩',
       reason: '靠近外白渡桥、北外滩和苏州河，和首晚/延误调整路线都更贴合。',
       imageUrl: hotelRoomImages.shanghaiMansion,
       roomImages: [
+        { url: hotelRoomImages.astorLobby, label: '历史大堂' },
         { url: shanghaiImages.northBund, label: '北外滩视角' },
-        { url: hotelRoomImages.astorLobby, label: '历史大堂参考' },
       ],
       imageCredit: 'Wikimedia Commons',
       sourceUrl: 'https://www.booking.com/hotel/cn/broadway-mansions.zh-cn.html',
@@ -363,7 +365,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
       plan: {
         ...plan,
         dayPlans: nextDayPlans,
-        notes: withAdjustmentNote(plan.notes, '已按“迪士尼遇雨 / 闭园项目多”调整：Day 3 改室内浦东线，Day 4 顺延迪士尼。'),
+        notes: withAdjustmentNote(plan.notes, '迪士尼遇雨时，Day 3 走室内浦东线，Day 4 再顺延迪士尼。'),
       },
       message: '已把行程改好了：Day 3 不硬去迪士尼，改成陆家嘴、浦东美术馆和前滩太古里室内线；Day 4 顺延迪士尼，Day 5 压缩成轻松返程。你现在去“行程”页看 Day 3 和 Day 4 就是新安排。',
     }
@@ -377,7 +379,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
           title: '延误抵达后的轻量外滩夜景',
           routeSummary: '延误抵达 -> 酒店入住 -> 外滩源 / 北外滩短线 -> 酒店休息',
           spots: [
-            { time: '18:30', name: '抵达上海并入住 Radisson Blu Hotel Shanghai New World', type: '酒店', note: '取消下午南京东路慢逛，先把行李和入住搞定；如果 20:00 后到，只保留酒店附近晚餐。', imageUrl: hotelRoomImages.radissonExterior, lat: 31.2355, lng: 121.4752, cost: 4200, costDetails: ['Radisson Blu Hotel Shanghai New World 4 晚参考 ¥4200。', '延误不影响当晚入住，但需保留酒店确认单和到店时间。'] },
+            { time: '18:30', name: '抵达上海并入住 Radisson Blu Hotel Shanghai New World', type: '酒店', note: '取消下午南京东路慢逛，先把行李和入住搞定；如果 20:00 后到，只保留酒店附近晚餐。', imageUrl: hotelRoomImages.radissonExterior, lat: 31.2355, lng: 121.4752, cost: 4200, costDetails: ['Radisson Blu Hotel Shanghai New World 4 晚约 ¥4200。', '延误不影响当晚入住，保留酒店确认单并提前说明到店时间。'] },
             { time: '20:00', name: '外滩源 / 北外滩短线', type: '景点', note: '只做 60-90 分钟夜景，不再跨太多点；如果太累，改为酒店附近散步。', imageUrl: shanghaiImages.northBund, lat: 31.2503, lng: 121.4985, cost: 40, costDetails: ['夜景拍照免费。', '从酒店到外滩源/北外滩短途交通约 ¥40。'] },
             { time: '21:30', name: 'Radisson Blu 周边晚餐与休息', type: '餐饮', note: '晚餐选南京东路或人民广场附近，避免排队店，两人控制 ¥180-280。', imageUrl: shanghaiImages.xiaolongbao, lat: 31.2355, lng: 121.4752, cost: 240, costDetails: ['两人简餐/本帮小吃约 ¥190。', '饮品和服务费预留 ¥50。'] },
           ],
@@ -401,7 +403,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
       plan: {
         ...plan,
         dayPlans: nextDayPlans,
-        notes: withAdjustmentNote(plan.notes, '已按“首日航班 / 交通延误”调整：Day 1 改短夜景，Day 5 补回南京东路。'),
+        notes: withAdjustmentNote(plan.notes, '首日交通延误时，Day 1 保留短夜景，Day 5 上午补回南京东路。'),
       },
       message: '已调整：Day 1 改成延误抵达后的轻量外滩夜景，不再硬逛南京东路；南京东路和外滩源补到 Day 5 上午。去“行程”页看 Day 1 和 Day 5 就能看到变化。',
     }
@@ -425,8 +427,8 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
                 imageUrl: hotelRoomImages.shanghaiMansion,
                 cost: spot.name.includes('取行李') ? 0 : 2600,
                 costDetails: spot.name.includes('取行李')
-                  ? ['酒店寄存通常免费，以酒店前台当天规则为准。']
-                  : ['Broadway Mansions Hotel Shanghai 4 晚参考 ¥2600。', '7/1 入住、7/5 退房；实际房价以 Booking/携程等平台实时页为准。'],
+                  ? ['行李寄存通常不收费，到店时和前台确认即可。']
+                  : ['Broadway Mansions Hotel Shanghai 4 晚约 ¥2600。', '7/1 入住、7/5 退房；订房前再核对房型和退改规则。'],
               }
             }
             return spot
@@ -453,7 +455,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
           ...dayPlan,
           spots: dayPlan.spots.map((spot) =>
             spot.name.includes('上海迪士尼乐园')
-              ? { ...spot, note: '保留迪士尼门票，但不买尊享卡，只抓 4 个核心项目；若当日排队过长，转迪士尼小镇和低排队项目。', cost: 1180, costDetails: ['两张标准日门票参考约 ¥950-1100。', '不买尊享卡，园内机动控制在 ¥80 左右。'] }
+              ? { ...spot, note: '保留迪士尼门票，但不买尊享卡，只抓 4 个核心项目；若当日排队过长，转迪士尼小镇和低排队项目。', cost: 1180, costDetails: ['两张标准日门票约 ¥950-1100。', '不买尊享卡，园内机动控制在 ¥80 左右。'] }
               : spot.name.includes('Radisson Blu')
                 ? {
                     ...spot,
@@ -482,7 +484,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
           insurance: 100,
           flexible: 200,
         },
-        notes: withAdjustmentNote(plan.notes, '已按“预算收紧到 8000 左右”调整：酒店备选 Broadway Mansions Hotel Shanghai，餐饮降档，迪士尼不加尊享卡。'),
+        notes: withAdjustmentNote(plan.notes, '预算收紧到 ¥8000 左右时，住宿切到 Broadway Mansions Hotel Shanghai，餐饮更轻，迪士尼不加尊享卡。'),
       },
       message: '已把预算版改好：总预算压到约 ¥7980，酒店从 Radisson Blu Hotel Shanghai New World 切到 Broadway Mansions Hotel Shanghai，餐饮减少高客单约会餐，迪士尼保留但不买尊享卡。你可以在“行程”的预算分配和 Day 2、Day 3、Day 4 看到变化。',
     }
@@ -525,7 +527,7 @@ export const applyShenzhenShanghaiPlanAdjustment = (plan: TravelPlan | null, tex
       plan: {
         ...plan,
         dayPlans: nextDayPlans,
-        notes: withAdjustmentNote(plan.notes, '已按“加购物 / 减少景点”调整：Day 4 加静安购物，Day 5 加伴手礼补购物。'),
+        notes: withAdjustmentNote(plan.notes, '想多留购物时间时，Day 4 加静安商圈，Day 5 留伴手礼时间。'),
       },
       message: '已调整成购物更友好的版本：Day 4 博物馆缩短，静安寺商圈加久光、芮欧和晶品；Day 5 在中山公园 / 龙之梦补伴手礼。去“行程”页看 Day 4 和 Day 5 就是新路线。',
     }
@@ -554,7 +556,7 @@ export function buildShenzhenShanghaiLocalPlan(profile: TravelProfile): TravelPl
     policyCards: [
       { title: '行程定位', summary: '方案围绕深圳往返上海的 5 天情侣出游设计，兼顾外滩夜景、城市街区、迪士尼主题体验和前后一天预订比价。', level: '重要' },
       { title: '上海 7 月天气', summary: '湿热、午后阵雨概率高。上午安排户外街区，下午安排展馆 / 商场，傍晚再去夜景点。', level: '建议' },
-      { title: '预约优先级', summary: '优先锁定迪士尼门票、博物馆预约、酒店可取消房；交通票价若接近推荐价可直接下单。', level: '提醒' },
+      { title: '预约优先级', summary: '先定迪士尼门票、博物馆预约和可取消酒店；交通价格合适时就可以锁定。', level: '提醒' },
     ],
     monitors: [
       { id: 'local-shanghai-flight', category: '机票', target: '深圳 SZX -> 上海 SHA/PVG 往返 2 人', currentPrice: 2560, expectedPrice: 2400, trend: [2960, 2820, 2680, 2560, 2480, 2560], status: '接近低价', enabled: true },
@@ -571,7 +573,7 @@ export function buildShenzhenShanghaiLocalPlan(profile: TravelProfile): TravelPl
     ],
     notes: [
       '该方案预算按两人计算；如果选择直飞 + Radisson Blu Hotel Shanghai New World，舒适档可能略超 ¥10000，可用 G902 高铁或 Broadway Mansions Hotel Shanghai 压回预算。',
-      '交通班次与酒店名称为真实可查对象；票价、房价、库存和退改规则以下单平台实时页面为准。',
+      '交通和住宿都落到具体班次与酒店；出发前再确认价格、房型和退改规则。',
       shenzhenShanghaiBookingComparison.summary,
     ],
     spotRecommendations,

@@ -331,8 +331,8 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
             </div>
             <p className="mt-4 text-[11px] leading-5 text-stone-500">
               {offline
-                ? '已按当天动线展示关键节点，建议根据天气、人流和体力微调停留时长。'
-                : '已按路线节点展示当天动线，关键位置可作为导航与转场参考。'}
+                ? '当天关键节点都在这里，天气、人流和体力变化时可以微调停留时长。'
+                : '当天动线已经串好，关键位置可以直接作为导航点。'}
             </p>
           </>
         ) : null}
@@ -367,7 +367,7 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
             ? isResolving
               ? '地图已显示，正在继续用高德解析更准确的路线节点与城市焦点。'
               : routeSegments.length > 0
-                ? '高德底图已显示，路线折线为当前静态版估算动线。'
+                ? '高德底图已显示，当天路线已经串好。'
                 : '高德底图已显示，正在按推荐节点绘制城市动线。'
             : '正在加载地图资源...'}
         </p>

@@ -88,7 +88,7 @@ const normalizeHotelGallery = (hotel: HotelVisualOption) => {
     { url: exteriorUrl, label: '酒店外景' },
     ...sourceGallery.map((image) => ({
       ...image,
-      label: /外观|外滩建筑|大堂/.test(image.label) ? image.label : image.label.replace(/参考$/, '') || '房间图片',
+      label: image.label.replace(/参考$/, '') || '酒店细节',
     })),
   ]
 
@@ -97,7 +97,7 @@ const normalizeHotelGallery = (hotel: HotelVisualOption) => {
     .filter((image) => image.url && !seen.has(image.url) && seen.add(image.url))
     .map((image, index) => ({
       ...image,
-      label: index === 0 ? '酒店外景' : image.label.includes('房') || image.label.includes('套') ? image.label : '房间图片',
+      label: index === 0 ? '酒店外景' : image.label,
     }))
 }
 
@@ -167,7 +167,7 @@ export default function Prepare() {
 
     if (!queryResolution?.ok) {
       setPricingStatus('error')
-      setPricingError(queryError || '暂时无法生成真实报价查询条件。')
+      setPricingError(queryError || '暂时还缺少出发日期或城市信息。')
       setLivePricing(null)
       return
     }
@@ -203,7 +203,7 @@ export default function Prepare() {
       if (!queryResolution?.ok) {
         if (!cancelled) {
           setPricingStatus('error')
-          setPricingError(queryError || '暂时无法生成真实报价查询条件。')
+          setPricingError(queryError || '暂时还缺少出发日期或城市信息。')
           setLivePricing(null)
         }
         return
@@ -276,7 +276,7 @@ export default function Prepare() {
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">{option.departDate} · {option.returnDate}</p>
                         <h3 className="mt-1 text-base font-semibold text-stone-950">{option.label}</h3>
-                        <p className="mt-1 text-[11px] text-stone-500">{option.hotelNights} 晚 · 两人出行估算</p>
+                        <p className="mt-1 text-[11px] text-stone-500">{option.hotelNights} 晚 · 两人预算</p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         {isRecommended ? <span className="rounded-full bg-stone-900 px-2 py-1 text-[10px] text-white">综合推荐</span> : null}
@@ -361,7 +361,7 @@ export default function Prepare() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 px-1 text-sm font-semibold text-stone-900">
                   <Hotel className="h-4 w-4 text-amber-700" />
-                  酒店参考
+                  住宿选择
                 </div>
                 <div className="relative h-[530px] overflow-hidden">
                   {hotelOptions.map((hotel, index) => {
@@ -395,6 +395,7 @@ export default function Prepare() {
                                 className="h-40 w-full object-cover"
                                 loading="eager"
                                 decoding="async"
+                                referrerPolicy="no-referrer"
                               />
                               <span className="absolute bottom-2 left-2 rounded-full bg-stone-950/75 px-2.5 py-1 text-[10px] text-white backdrop-blur">
                                 {roomGallery[0].label}
@@ -409,6 +410,7 @@ export default function Prepare() {
                                     className="h-[76px] w-full object-cover"
                                     loading="eager"
                                     decoding="async"
+                                    referrerPolicy="no-referrer"
                                   />
                                   <span className="absolute bottom-1.5 left-1.5 rounded-full bg-white/85 px-2 py-0.5 text-[9px] text-stone-700 shadow-sm">
                                     {image.label}
@@ -430,7 +432,7 @@ export default function Prepare() {
                               rel="noreferrer"
                               className="mt-2 inline-flex rounded-full bg-stone-100 px-3 py-1.5 text-[10px] font-medium text-stone-600 transition hover:bg-stone-200"
                             >
-                              官网/平台查询
+                              查看酒店详情
                             </a>
                           ) : null}
                         </div>
@@ -488,7 +490,7 @@ export default function Prepare() {
                     往返航班
                   </div>
                   <p className="mt-2 text-xs leading-6 text-stone-500">
-                    {queryResolution?.ok ? queryResolution.query.querySummary : pricingError || '等待生成查询条件'}
+                    {queryResolution?.ok ? queryResolution.query.querySummary : pricingError || '补齐出发日期和城市后再看价格'}
                   </p>
                 </div>
                 <button
@@ -515,7 +517,7 @@ export default function Prepare() {
               ) : null}
 
               {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.flights.length === 0 ? (
-                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的航班结果。</article>
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">暂时没有合适的航班结果，稍后可以再刷新一次。</article>
               ) : null}
 
               <div className="grid grid-cols-1 gap-3">
@@ -529,7 +531,7 @@ export default function Prepare() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-stone-900">
-                          {(flight.validatingAirlineCodes[0] || flight.airlineCodes[0] || '航司待确认')} · {describeStops(outbound)}
+                          {(flight.validatingAirlineCodes[0] || flight.airlineCodes[0] || '航班待确认')} · {describeStops(outbound)}
                         </div>
                         <p className="mt-2 text-xs text-stone-500">
                           去程 {firstOutbound?.departureIata || '--'} {formatDateTime(firstOutbound?.departureAt || '')}{' -> '}{lastOutbound?.arrivalIata || '--'} {formatDateTime(lastOutbound?.arrivalAt || '')}
@@ -566,7 +568,7 @@ export default function Prepare() {
               ) : null}
 
               {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.hotels.length === 0 ? (
-                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的酒店报价。</article>
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">暂时没有合适的酒店结果，建议稍后再刷新一次。</article>
               ) : null}
 
               <div className="grid grid-cols-1 gap-3">
@@ -599,7 +601,7 @@ export default function Prepare() {
               ) : null}
 
               {pricingStatus === 'ready' && alignedLivePricing && alignedLivePricing.trains.length === 0 ? (
-                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">当前查询条件下暂未返回可展示的火车票结果。</article>
+                <article className="rounded-2xl bg-stone-50 px-4 py-5 text-sm text-stone-500">暂时没有合适的火车票结果，稍后可以再刷新一次。</article>
               ) : null}
 
               <div className="grid grid-cols-1 gap-3">

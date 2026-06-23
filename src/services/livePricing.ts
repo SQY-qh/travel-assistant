@@ -154,18 +154,18 @@ export function resolveLivePricingQuery(profile: TravelProfile, plan: TravelPlan
   if (!destinationCode) warnings.push(`暂时还无法把“${destinationCity}”自动映射成航旅供应商使用的 IATA 代码。`)
 
   if (!originCode || !destinationCode) {
-    return { ok: false, error: '当前城市代码解析失败，需补充更标准的城市名或手动扩展代码映射表。', warnings }
+    return { ok: false, error: '城市名称还不够明确，可以补充出发地和目的地。', warnings }
   }
 
   const declaredDays = extractTripDays(profile.dateRange)
   if (profile.dateRange && declaredDays !== plannedDays) {
-    warnings.push(`当前报价已优先按已生成行程的 ${plannedDays} 天安排计算，而不是仅按原始文本中的天数。`)
+    warnings.push(`价格已按 ${plannedDays} 天行程安排。`)
   }
 
   const dates = resolveDateRange(profile.dateRange, plannedDays)
   const adults = estimateTravelerCount(profile.travelers)
   if (dates.approximate) {
-    warnings.push('当前真实报价使用了从自然语言自动推导的日期，若你提供精确到日的出发日期，报价会更准确。')
+    warnings.push('出发日期越具体，价格越贴近实际出行。')
   }
 
   return {
@@ -184,7 +184,7 @@ export function resolveLivePricingQuery(profile: TravelProfile, plan: TravelPlan
       roomQuantity: 1,
       tripDays: plannedDays,
       approximateDates: dates.approximate,
-      querySummary: `${originCity}(${originCode}) -> ${destinationCity}(${destinationCode})，按当前 ${plannedDays} 天行程计算：出发 ${toIsoDate(dates.start)}，返程 ${toIsoDate(dates.end)}，酒店 ${toIsoDate(dates.start)} 入住 / ${toIsoDate(addDays(dates.end, 1))} 离店`,
+      querySummary: `${originCity}(${originCode}) -> ${destinationCity}(${destinationCode})，${plannedDays} 天安排：${toIsoDate(dates.start)} 出发，${toIsoDate(dates.end)} 返程，酒店住到 ${toIsoDate(addDays(dates.end, 1))}`,
     },
   }
 }
@@ -254,15 +254,15 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
     query,
     fetchedAt: new Date().toISOString(),
     warnings: [
-      '当前为 GitHub Pages 静态版，报价为本地估算，用于行程预算参考。',
+      '价格先按常见区间展示，适合用来判断预算是否够用。',
       ...(query.approximateDates ? ['日期来自自然语言推断，提供精确日期可让预算更贴近实际。'] : []),
     ],
     flights: [
       {
         id: 'static-flight-1',
-        source: 'static-estimate',
+        source: 'budget-range',
         airlineCodes: ['CA'],
-        validatingAirlineCodes: ['估算航司'],
+        validatingAirlineCodes: ['航班'],
         totalPrice: totalFlightPrice,
         currency: 'CNY',
         bookableSeats: Math.max(2, query.adults + 2),
@@ -270,7 +270,7 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
           [
             {
               carrierCode: 'CA',
-              flightNumber: `${query.originCode}${query.destinationCode} 参考`,
+              flightNumber: `${query.originCode}-${query.destinationCode}`,
               departureIata: query.originCode,
               arrivalIata: query.destinationCode,
               departureAt: outboundAt,
@@ -281,7 +281,7 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
           [
             {
               carrierCode: 'CA',
-              flightNumber: `${query.destinationCode}${query.originCode} 参考`,
+              flightNumber: `${query.destinationCode}-${query.originCode}`,
               departureIata: query.destinationCode,
               arrivalIata: query.originCode,
               departureAt: inboundAt,
@@ -304,7 +304,7 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
         refundable: true,
         totalPrice: Math.round(hotelBase * hotelNights * query.roomQuantity),
         currency: 'CNY',
-        source: 'static-estimate',
+        source: 'budget-range',
       },
       {
         id: 'static-hotel-2',
@@ -317,25 +317,25 @@ export async function fetchLivePricing(query: LivePricingQuery): Promise<LivePri
         refundable: true,
         totalPrice: Math.round(hotelBase * 1.35 * hotelNights * query.roomQuantity),
         currency: 'CNY',
-        source: 'static-estimate',
+        source: 'budget-range',
       },
     ],
     trains: trainAvailable
       ? [
           {
             id: 'static-train-1',
-            source: 'static-estimate',
-            trainNumber: 'G 参考车次',
+            source: 'budget-range',
+            trainNumber: 'G 字头高铁',
             departureStation: `${query.originCity}站`,
             arrivalStation: `${query.destinationCity}站`,
             departureAt: `${query.departureDate}T08:00:00+08:00`,
             arrivalAt: `${query.departureDate}T13:30:00+08:00`,
             duration: '约5小时30分钟',
             seatType: '二等座',
-            availability: '参考余票',
+            availability: '座席充足时更合适',
             totalPrice: Math.round(360 * Math.max(query.adults, 1)),
             currency: 'CNY',
-            notes: '静态估算票价',
+            notes: '二等座价格区间',
           },
         ]
       : [],
