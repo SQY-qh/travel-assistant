@@ -250,7 +250,7 @@ export default function Prepare() {
       {localBookingComparison ? (
         <SectionCard title="前后一天预订比价" eyebrow="Booking Comparison">
           <div className="space-y-3">
-            <div className="relative h-[570px] overflow-hidden">
+            <div className="relative h-[980px] overflow-hidden">
               {bookingOptions.map((option, index) => {
                 const forwardOffset = (index - activeBookingIndex + bookingOptions.length) % bookingOptions.length
                 const stackOffset = forwardOffset > bookingOptions.length / 2 ? forwardOffset - bookingOptions.length : forwardOffset
@@ -263,7 +263,7 @@ export default function Prepare() {
                   <article
                     key={option.id}
                     className={cn(
-                      'absolute inset-x-3 top-0 rounded-[26px] border p-4 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
+                      'absolute inset-x-3 top-0 rounded-[26px] border p-4 pb-10 shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
                       isRecommended ? 'border-amber-300 bg-amber-50' : 'border-white/80 bg-white',
                       isVisible ? 'pointer-events-auto' : 'pointer-events-none',
                     )}
