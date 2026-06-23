@@ -43,10 +43,11 @@ jobs:
             VITE_BASE="/${{ github.event.repository.name }}/" npm run build
           fi
           cp dist/index.html dist/404.html
-          mkdir -p dist/call dist/plan dist/prepare
+          mkdir -p dist/call dist/plan dist/prepare dist/outfit-try-on
           cp dist/index.html dist/call/index.html
           cp dist/index.html dist/plan/index.html
           cp dist/index.html dist/prepare/index.html
+          cp dist/index.html dist/outfit-try-on/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
