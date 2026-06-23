@@ -8,6 +8,7 @@ const titles: Record<string, string> = {
   '/call': 'VOYA 电话中',
   '/plan': 'VOYA 行程方案',
   '/prepare': 'VOYA 出行准备',
+  '/outfit-try-on': 'VOYA 试穿',
 }
 
 type PhoneShellProps = {
@@ -41,7 +42,10 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
   const normalizedPath = currentPath === '/' ? '/' : currentPath.replace(/\/+$/, '')
-  const isCallMode = normalizedPath === '/call'
+  const displayPath = normalizedPath.startsWith('/outfit-try-on') ? '/outfit-try-on' : normalizedPath
+  const isCallMode = displayPath === '/call'
+  const isTryOnMode = displayPath === '/outfit-try-on'
+  const isImmersiveMode = isCallMode || isTryOnMode
   const rootRef = useRef<HTMLDivElement>(null)
   const [voyaPeek, setVoyaPeek] = useState<VoyaPeek | null>(null)
 
@@ -78,7 +82,7 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
       <div className="flex items-center justify-between px-6 pb-3 pt-6 text-[12px] font-semibold text-stone-700">
         <span>9:41</span>
         <div className="rounded-full bg-white/80 px-3 py-1 text-[11px] text-stone-600 shadow-sm">
-          {titles[normalizedPath] ?? 'VOYA'}
+          {titles[displayPath] ?? 'VOYA'}
         </div>
         <span>5G</span>
       </div>
@@ -88,8 +92,8 @@ export default function PhoneShell({ currentPath, children }: PhoneShellProps) {
           onPointerDownCapture={showVoyaPeek}
           className="micro-motion-root relative flex h-full flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[#f9f5ef] shadow-inner"
         >
-          <div className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4', isCallMode && 'overflow-hidden px-0 pb-0 pt-0')}>{children}</div>
-          {!isCallMode ? (
+          <div className={cn('min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4', isImmersiveMode && 'overflow-hidden px-0 pb-0 pt-0')}>{children}</div>
+          {!isImmersiveMode ? (
             <div className="px-3 pb-3 pt-1">
               <BottomTabs />
             </div>

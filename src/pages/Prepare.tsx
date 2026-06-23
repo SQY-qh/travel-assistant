@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BriefcaseBusiness, ChevronLeft, ChevronRight, FileText, Hotel, Plane, RefreshCw, ShieldPlus, Shirt, Ticket, TriangleAlert } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { BriefcaseBusiness, ChevronLeft, ChevronRight, FileText, Hotel, Plane, RefreshCw, ShieldPlus, Shirt, Sparkles, Ticket, TriangleAlert } from 'lucide-react'
 import SectionCard from '@/components/common/SectionCard'
 import { shenzhenShanghaiBookingComparison } from '@/data/localShanghaiPlan'
 import { fetchLivePricing, resolveLivePricingQuery } from '@/services/livePricing'
@@ -103,6 +104,7 @@ const normalizeHotelGallery = (hotel: HotelVisualOption) => {
 
 export default function Prepare() {
   const { plan, profile } = useTravelStore()
+  const navigate = useNavigate()
   const [pricingStatus, setPricingStatus] = useState<PricingStatus>('idle')
   const [pricingError, setPricingError] = useState('')
   const [livePricing, setLivePricing] = useState<LivePricingResult | null>(null)
@@ -671,7 +673,7 @@ export default function Prepare() {
       </SectionCard>
 
       <SectionCard title="穿搭推荐" eyebrow="Outfit Guidance">
-        <div className="relative h-[590px] overflow-hidden">
+        <div className="relative h-[620px] overflow-hidden">
           {outfitOptions.map((outfit, index) => {
             const forwardOffset = (index - activeOutfitIndex + outfitOptions.length) % outfitOptions.length
             const stackOffset = forwardOffset > outfitOptions.length / 2 ? forwardOffset - outfitOptions.length : forwardOffset
@@ -680,7 +682,7 @@ export default function Prepare() {
 
             return (
               <article
-                key={outfit.title}
+                key={`${outfit.title}-${outfit.gender ?? 'all'}-${index}`}
                 className={cn(
                   'absolute inset-x-3 top-0 overflow-hidden rounded-[26px] border border-white/80 bg-white shadow-[0_18px_45px_rgba(66,50,24,0.14)] transition-all duration-300',
                   isVisible ? 'pointer-events-auto' : 'pointer-events-none',
@@ -710,6 +712,15 @@ export default function Prepare() {
                     ) : null}
                   </div>
                   <p className="mt-2 text-xs leading-6 text-stone-500">{outfit.mood}</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/outfit-try-on/${index}`)}
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-950 px-4 py-3 text-xs font-semibold text-white shadow-[0_12px_28px_rgba(28,25,23,0.18)] transition hover:bg-stone-800"
+                    aria-label={`查看${outfit.title}${outfit.gender ?? ''}的VOYA试穿效果`}
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-200" />
+                    VOYA 试穿
+                  </button>
                   {outfit.keywords?.length ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {outfit.keywords.slice(0, 4).map((keyword) => (
@@ -754,7 +765,7 @@ export default function Prepare() {
           <div className="absolute bottom-2 left-1/2 z-40 flex -translate-x-1/2 gap-1.5">
             {outfitOptions.map((outfit, index) => (
               <button
-                key={outfit.title}
+                key={`${outfit.title}-${outfit.gender ?? 'all'}-${index}`}
                 type="button"
                 onClick={() => setActiveOutfitIndex(index)}
                 className={cn('h-1.5 rounded-full transition-all', index === activeOutfitIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-300')}
