@@ -53,6 +53,7 @@ export type DaySpot = {
   lat?: number
   lng?: number
   cost?: number
+  costDetails?: string[]
 }
 
 export type DayPlan = {

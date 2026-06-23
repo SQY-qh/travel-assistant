@@ -393,7 +393,21 @@ export default function RouteMapCard({ dayPlans, center, destination, offline = 
             </div>
             {selectedSpot.address ? <p className="mb-2 text-[11px] leading-5 text-stone-500">{selectedSpot.address}</p> : null}
             <p className="text-[11px] leading-5 text-stone-600">{selectedSpot.note}</p>
-            {selectedSpot.cost ? <p className="mt-2 text-[11px] font-semibold text-stone-800">预估费用 ¥{selectedSpot.cost}</p> : null}
+            {selectedSpot.cost !== undefined ? (
+              <div className="mt-3 rounded-2xl bg-white/70 px-3 py-2 text-[11px] text-stone-600">
+                <p className="font-semibold text-stone-900">预估费用 ¥{selectedSpot.cost}</p>
+                {selectedSpot.costDetails?.length ? (
+                  <ul className="mt-2 space-y-1 leading-5">
+                    {selectedSpot.costDetails.map((detail) => (
+                      <li key={detail} className="flex gap-1.5">
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-700" />
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
             </div>
           </div>
         ) : null}

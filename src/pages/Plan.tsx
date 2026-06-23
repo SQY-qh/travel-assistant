@@ -262,7 +262,21 @@ export default function Plan() {
                           <strong className="text-sm">{spot.name}</strong>
                         </div>
                         <p className="mt-2 text-xs leading-6 text-stone-500">{spot.note}</p>
-                        {spot.cost ? <p className="mt-2 text-[11px] font-medium text-stone-700">预估费用 ¥{spot.cost}</p> : null}
+                        {spot.cost !== undefined ? (
+                          <div className="mt-3 rounded-2xl bg-stone-50 px-3 py-2 text-[11px] text-stone-600">
+                            <p className="font-medium text-stone-800">预估费用 ¥{spot.cost}</p>
+                            {spot.costDetails?.length ? (
+                              <ul className="mt-2 space-y-1 leading-5">
+                                {spot.costDetails.map((detail) => (
+                                  <li key={detail} className="flex gap-1.5">
+                                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-700" />
+                                    <span>{detail}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   ))}
